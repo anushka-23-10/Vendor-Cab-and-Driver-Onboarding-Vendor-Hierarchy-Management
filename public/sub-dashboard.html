@@ -169,6 +169,39 @@
       </table>
     </section>
 
+    <!-- DOCUMENT UPLOAD -->
+    <section>
+      <h3>Driver Document Upload</h3>
+      <form id="docForm" enctype="multipart/form-data">
+        <select id="driverSelect" required>
+          <option value="">Select Driver</option>
+        </select>
+        <select id="docType" required>
+          <option value="">Select Document Type</option>
+          <option>Driving License</option>
+          <option>RC</option>
+          <option>Permit</option>
+          <option>Pollution</option>
+          <option>Insurance</option>
+        </select>
+        <input type="file" id="fileInput" required />
+        <button type="submit">Upload Document</button>
+      </form>
+
+      <h4>Your Uploaded Documents</h4>
+      <table id="docTable">
+        <thead>
+          <tr>
+            <th>Driver</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
     <!-- CHILD SUBVENDOR CREATION -->
     <section>
       <h3>Create Child SubVendor</h3>
@@ -199,13 +232,12 @@
     <script>
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
-
       if (!token || !role) {
         alert("Please login first.");
         window.location.href = "index.html";
       }
 
-      // 🧠 Load vendor info
+      // Load vendor info
       async function loadVendorInfo() {
         const res = await fetch("/api/vendors/me", {
           headers: { Authorization: `Bearer ${token}` },
@@ -215,11 +247,12 @@
           document.getElementById("vendorName").innerText = data.vendor.name;
           document.getElementById("vendorRole").innerText = data.vendor.role;
           document.getElementById("vendorRegion").innerText = data.vendor.region || "N/A";
-
           setupRolePermissions(data.vendor.role);
           loadDrivers();
           loadVehicles();
           loadChildVendors();
+          loadDriversForDocs();
+          loadDocuments();
         } else {
           alert("Your session expired. Please log in again.");
           localStorage.clear();
@@ -227,23 +260,21 @@
         }
       }
 
-      // 🟩 Role-based allowed subvendors
+      // Role-based subvendor options
       function setupRolePermissions(role) {
         const dropdown = document.getElementById("childRole");
-        const allowed =
-          {
-            SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
-            RegionalVendor: ["CityVendor", "LocalVendor"],
-            CityVendor: ["LocalVendor"],
-            LocalVendor: [],
-          }[role] || [];
-
+        const allowed = {
+          SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
+          RegionalVendor: ["CityVendor", "LocalVendor"],
+          CityVendor: ["LocalVendor"],
+          LocalVendor: [],
+        }[role] || [];
         dropdown.innerHTML = allowed.length
           ? allowed.map((r) => `<option value="${r}">${r}</option>`).join("")
           : `<option disabled>No roles available</option>`;
       }
 
-      // 🧑‍ Drivers
+      // Drivers
       async function loadDrivers() {
         const res = await fetch("/api/drivers/list", {
           headers: { Authorization: `Bearer ${token}` },
@@ -276,9 +307,10 @@
         const data = await res.json();
         alert(res.ok ? "Driver added!" : data.error);
         loadDrivers();
+        loadDriversForDocs();
       });
 
-      // 🚘 Vehicles
+      // Vehicles
       async function loadVehicles() {
         const res = await fetch("/api/vehicles/my", {
           headers: { Authorization: `Bearer ${token}` },
@@ -319,7 +351,59 @@
         loadVehicles();
       });
 
-      // 🧩 Child Subvendors
+      // Driver documents
+      async function loadDriversForDocs() {
+        const res = await fetch("/api/drivers/list", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const select = document.getElementById("driverSelect");
+        select.innerHTML = "<option value=''>Select Driver</option>";
+        data.drivers.forEach((d) => {
+          const opt = document.createElement("option");
+          opt.value = d._id;
+          opt.textContent = `${d.name} (${d.licenseNumber})`;
+          select.appendChild(opt);
+        });
+      }
+
+      document.getElementById("docForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append("driverId", driverSelect.value);
+        formData.append("docType", docType.value);
+        formData.append("file", fileInput.files[0]);
+
+        const res = await fetch("/api/documents/upload", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+
+        const data = await res.json();
+        alert(res.ok ? "Document uploaded!" : data.error);
+        loadDocuments();
+      });
+
+      async function loadDocuments() {
+        const res = await fetch("/api/documents/my", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const tbody = document.querySelector("#docTable tbody");
+        tbody.innerHTML = "";
+        data.documents?.forEach((d) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${d.driverId?.name || "-"}</td>
+            <td>${d.docType}</td>
+            <td>${new Date(d.uploadDate).toLocaleDateString()}</td>
+            <td>${d.status}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Child Vendors
       async function loadChildVendors() {
         const res = await fetch("/api/vendors/my-subvendors", {
           headers: { Authorization: `Bearer ${token}` },

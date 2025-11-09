@@ -8,6 +8,7 @@ import vendorRoutes from "./routes/vendor.routes.js";
 import driverRoutes from "./routes/driver.routes.js";
 import vehicleRoutes from "./routes/vehicle.routes.js";
 import documentRoutes from "./routes/document.routes.js";
+import path from "path";
 
 dotenv.config();
 const app = express();
@@ -39,3 +40,4 @@ app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/api/drivers", driverRoutes);
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));

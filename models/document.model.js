@@ -1,12 +1,17 @@
 import mongoose from "mongoose";
 
 const documentSchema = new mongoose.Schema({
-  type: { type: String, required: true }, // DL, RC, Permit
-  issueDate: Date,
-  expiryDate: Date,
-  filePath: String,
-  ownerType: { type: String, enum: ["Driver", "Vehicle"], required: true },
-  ownerId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  driverId: { type: mongoose.Schema.Types.ObjectId, ref: "Driver", required: true },
+  vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor", required: true },
+  docType: {
+    type: String,
+    enum: ["Driving License", "RC", "Permit", "Pollution", "Insurance"],
+    required: true,
+  },
+  filePath: { type: String, required: true },
+  status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
+  uploadDate: { type: Date, default: Date.now },
+  expiryDate: { type: Date }, // optional for future compliance
 });
 
 export default mongoose.model("Document", documentSchema);
