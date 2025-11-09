@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SuperVendor Fleet Overview</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f7f9fb;
+        margin: 0;
+        padding: 20px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+      }
+
+      header h2 {
+        margin: 0;
+      }
+
+      header button {
+        background: white;
+        color: #007bff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      header button:hover {
+        background: #e4ecff;
+      }
+
+      section {
+        background: white;
+        padding: 20px;
+        margin-top: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      h3 {
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 6px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .green {
+        color: green;
+        font-weight: bold;
+      }
+
+      .red {
+        color: red;
+        font-weight: bold;
+      }
+
+      .orange {
+        color: orange;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2>SuperVendor Fleet & Compliance Overview</h2>
+      <div>
+        <button id="subBtn" onclick="window.location.href='super-dashboard.html'">
+          Back to Dashboard
+        </button>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <section>
+      <h3>📊 SubVendor Performance Summary</h3>
+      <table id="overviewTable">
+        <thead>
+          <tr>
+            <th>SubVendor</th>
+            <th>Role</th>
+            <th>Region</th>
+            <th>Fleet</th>
+            <th>Drivers</th>
+            <th>Total Docs</th>
+            <th>Approved</th>
+            <th>Pending</th>
+            <th>Rejected</th>
+            <th>Compliance Rate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <script>
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+
+      if (!token || role !== "SuperVendor") {
+        alert("Unauthorized access. Please log in as SuperVendor.");
+        window.location.href = "index.html";
+      }
+
+      async function loadFleetOverview() {
+        const res = await fetch("/api/vendors/fleet-overview", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        const tbody = document.querySelector("#overviewTable tbody");
+        tbody.innerHTML = "";
+
+        if (!data.overview || data.overview.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="10" style="text-align:center;">No SubVendors found</td></tr>';
+          return;
+        }
+
+        data.overview.forEach((v) => {
+          const color =
+            v.complianceRate >= 80
+              ? "green"
+              : v.complianceRate >= 50
+              ? "orange"
+              : "red";
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${v.vendorName}</td>
+            <td>${v.role}</td>
+            <td>${v.region}</td>
+            <td>${v.fleetCount}</td>
+            <td>${v.driverCount}</td>
+            <td>${v.totalDocs}</td>
+            <td>${v.approved}</td>
+            <td>${v.pending}</td>
+            <td>${v.rejected}</td>
+            <td class="${color}">${v.complianceRate}%</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "index.html";
+      });
+
+      loadFleetOverview();
+    </script>
+  </body>
+</html>

@@ -9,6 +9,7 @@ import {
 } from "../controllers/vendor.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
+import { getVendorFleetOverview } from "../controllers/vendor.controller.js";
 
 const router = express.Router();
 
@@ -34,4 +35,10 @@ router.get(
 );
 router.get("/me", authenticate, getMyVendor);
 
+router.get(
+  "/fleet-overview",
+  authenticate,
+  authorize(["SuperVendor"]),
+  getVendorFleetOverview
+);
 export default router;

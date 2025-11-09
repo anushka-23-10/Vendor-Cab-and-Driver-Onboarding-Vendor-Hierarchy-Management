@@ -10,6 +10,7 @@
         margin: 0;
         padding: 20px;
       }
+
       header {
         display: flex;
         justify-content: space-between;
@@ -19,10 +20,11 @@
         padding: 10px 20px;
         border-radius: 6px;
       }
+
       header h2 {
         margin: 0;
-        font-size: 20px;
       }
+
       header button {
         background: white;
         color: #007bff;
@@ -32,6 +34,7 @@
         font-weight: bold;
         cursor: pointer;
       }
+
       header button:hover {
         background: #e4ecff;
       }
@@ -42,36 +45,15 @@
         margin-top: 25px;
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        max-width: 850px;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       h3 {
         color: #333;
         border-bottom: 2px solid #007bff;
         padding-bottom: 6px;
-      }
-
-      input,
-      select,
-      button {
-        display: block;
-        width: 100%;
-        margin: 10px 0;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-      }
-
-      button {
-        background-color: #007bff;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-        border: none;
-      }
-
-      button:hover {
-        background-color: #0056b3;
       }
 
       table {
@@ -91,74 +73,86 @@
         background-color: #007bff;
         color: white;
       }
+
+      .green {
+        color: green;
+        font-weight: bold;
+      }
+
+      .red {
+        color: red;
+        font-weight: bold;
+      }
+
+      .orange {
+        color: orange;
+        font-weight: bold;
+      }
+
+      /* Summary cards */
+      #summaryCards {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .card {
+        flex: 1 1 200px;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+        color: #333;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .green-bg {
+        background-color: #d4edda;
+      }
+
+      .orange-bg {
+        background-color: #fff3cd;
+      }
+
+      .red-bg {
+        background-color: #f8d7da;
+      }
     </style>
   </head>
+
   <body>
     <header>
       <h2>SuperVendor Dashboard</h2>
-      <div>
-        <button id="complianceBtn">📄 Compliance</button>
-        <button id="logoutBtn">Logout</button>
-      </div>
+      <button id="logoutBtn">Logout</button>
     </header>
 
-    <!-- 🧠 Vendor Info -->
-    <section
-      id="vendorInfo"
-      style="
-        background: #eef3ff;
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 15px;
-        font-size: 15px;
-      "
-    >
-      <b>Logged in as:</b> <span id="vendorName">Loading...</span><br />
-      <b>Role:</b> <span id="vendorRole">-</span><br />
+    <section id="vendorInfo" style="background: #eef3ff; padding: 10px; border-radius: 8px;">
+      <b>Logged in as:</b> <span id="vendorName">Loading...</span> |
+      <b>Role:</b> <span id="vendorRole">-</span> |
       <b>Region:</b> <span id="vendorRegion">-</span>
     </section>
 
-    <!-- 🧩 Create SubVendor -->
+    <!-- ✅ Create SubVendor -->
     <section>
       <h3>Create SubVendor</h3>
       <form id="createSubForm">
         <input type="text" id="subName" placeholder="SubVendor Name" required />
-        <input
-          type="email"
-          id="subContact"
-          placeholder="Contact Email"
-          required
-        />
-        <input
-          type="text"
-          id="subUsername"
-          placeholder="Username for login"
-          required
-        />
-        <input
-          type="text"
-          id="subPassword"
-          placeholder="Temporary Password (optional)"
-        />
+        <input type="email" id="subContact" placeholder="Contact Email" required />
+        <input type="text" id="subUsername" placeholder="Username for login" required />
+        <input type="text" id="subRegion" placeholder="Region" required />
         <label>SubVendor Role:</label>
         <select id="subRole">
           <option value="RegionalVendor">RegionalVendor</option>
           <option value="CityVendor">CityVendor</option>
           <option value="LocalVendor">LocalVendor</option>
         </select>
-
-        <input
-          type="text"
-          id="subRegion"
-          placeholder="Region (e.g., North Zone, Delhi)"
-          required
-        />
-
         <button type="submit">Create SubVendor</button>
       </form>
     </section>
 
-    <!-- 📋 List of Subvendors -->
+    <!-- ✅ SubVendor List -->
     <section>
       <h3>Your SubVendors</h3>
       <table id="vendorTable">
@@ -166,8 +160,36 @@
           <tr>
             <th>Name</th>
             <th>Contact</th>
+            <th>Region</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- ✅ Fleet & Compliance Overview -->
+    <section>
+      <h3>📊 Fleet & Compliance Overview</h3>
+      <div id="summaryCards">
+        <div class="card green-bg">🟢 Compliant Vendors: <span id="greenCount">0</span></div>
+        <div class="card orange-bg">🟠 Partially Compliant: <span id="orangeCount">0</span></div>
+        <div class="card red-bg">🔴 Non-Compliant: <span id="redCount">0</span></div>
+      </div>
+
+      <table id="overviewTable">
+        <thead>
+          <tr>
+            <th>SubVendor</th>
             <th>Role</th>
             <th>Region</th>
+            <th>Fleet</th>
+            <th>Drivers</th>
+            <th>Total Docs</th>
+            <th>Approved</th>
+            <th>Pending</th>
+            <th>Rejected</th>
+            <th>Compliance Rate</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -178,102 +200,102 @@
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
 
-      // 🚨 Login protection
-      if (!token || !role) {
-        alert("Please login first.");
-        window.location.href = "vendor-login.html";
+      if (!token || role !== "SuperVendor") {
+        alert("Unauthorized access. Please log in as SuperVendor.");
+        window.location.href = "index.html";
       }
 
-      if (role !== "SuperVendor") {
-        alert("Access denied: Only SuperVendor allowed.");
-        window.location.href = "sub-dashboard.html";
-      }
-
-      // ✅ Verify session
       async function verifyLogin() {
-        try {
-          const res = await fetch("/api/vendors/me", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          });
-
-          if (!res.ok) throw new Error("Invalid token or expired session");
-
-          const data = await res.json();
-          console.log("✅ Verified:", data.vendor?.username, data.vendor?.role);
-        } catch (err) {
+        const res = await fetch("/api/vendors/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!data.vendor) {
           alert("Session expired. Please log in again.");
           localStorage.clear();
           window.location.href = "index.html";
+          return;
         }
+        document.getElementById("vendorName").innerText = data.vendor.name;
+        document.getElementById("vendorRole").innerText = data.vendor.role;
+        document.getElementById("vendorRegion").innerText =
+          data.vendor.region || "N/A";
       }
 
-      // ✅ Load vendor info for header section
-      async function loadVendorInfo() {
-        try {
-          const res = await fetch("/api/vendors/me", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-
-          if (!res.ok || !data.vendor) {
-            console.warn("⚠️ Unable to fetch vendor info:", data.error);
-            document.getElementById("vendorName").innerText = "N/A";
-            return;
-          }
-
-          document.getElementById("vendorName").innerText = data.vendor.name;
-          document.getElementById("vendorRole").innerText = data.vendor.role;
-          document.getElementById("vendorRegion").innerText =
-            data.vendor.region || "N/A";
-        } catch (err) {
-          console.error("Error loading vendor info:", err.message);
-        }
-      }
-
-      // ✅ Fetch subvendors
       async function loadSubVendors() {
-        try {
-          const res = await fetch("/api/vendors/my-subvendors", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
+        const res = await fetch("/api/vendors/my-subvendors", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
 
-          const tbody = document.querySelector("#vendorTable tbody");
-          tbody.innerHTML = "";
-
-          if (data.vendors && data.vendors.length > 0) {
-            data.vendors.forEach((v) => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${v.name}</td>
-                <td>${v.contactInfo}</td>
-                <td>${v.role}</td>
-                <td>${v.region || "-"}</td>
-              `;
-              tbody.appendChild(tr);
-            });
-          } else {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No subvendors found</td></tr>`;
-          }
-        } catch (err) {
-          console.error("Error loading subvendors:", err.message);
+        const tbody = document.querySelector("#vendorTable tbody");
+        tbody.innerHTML = "";
+        if (!data.vendors || data.vendors.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" style="text-align:center;">No subvendors found</td></tr>';
+          return;
         }
+
+        data.vendors.forEach((v) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${v.name}</td><td>${v.contactInfo}</td><td>${v.region}</td><td>${v.role}</td>`;
+          tbody.appendChild(tr);
+        });
       }
 
-      // ✅ Create new SubVendor
+      async function loadFleetOverview() {
+        const res = await fetch("/api/vendors/fleet-overview", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        const tbody = document.querySelector("#overviewTable tbody");
+        tbody.innerHTML = "";
+
+        if (!data.overview || data.overview.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="10" style="text-align:center;">No fleet data available</td></tr>';
+          return;
+        }
+
+        let green = 0,
+          orange = 0,
+          red = 0;
+
+        data.overview.forEach((v) => {
+          const color =
+            v.complianceRate >= 80
+              ? (green++, "green")
+              : v.complianceRate >= 50
+              ? (orange++, "orange")
+              : (red++, "red");
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${v.vendorName}</td>
+            <td>${v.role}</td>
+            <td>${v.region}</td>
+            <td>${v.fleetCount}</td>
+            <td>${v.driverCount}</td>
+            <td>${v.totalDocs}</td>
+            <td>${v.approved}</td>
+            <td>${v.pending}</td>
+            <td>${v.rejected}</td>
+            <td class="${color}">${v.complianceRate}%</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Update summary cards
+        document.getElementById("greenCount").innerText = green;
+        document.getElementById("orangeCount").innerText = orange;
+        document.getElementById("redCount").innerText = red;
+      }
+
       document
         .getElementById("createSubForm")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
-          const name = subName.value;
-          const contactInfo = subContact.value;
-          const username = subUsername.value;
-          const role = subRole.value;
-          const region = subRegion.value;
-          const password = subPassword.value;
-
           const res = await fetch("/api/vendors/create-subvendor", {
             method: "POST",
             headers: {
@@ -281,37 +303,30 @@
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              name,
-              contactInfo,
-              username,
-              role,
-              region,
-              password,
+              name: subName.value,
+              contactInfo: subContact.value,
+              username: subUsername.value,
+              role: subRole.value,
+              region: subRegion.value,
             }),
           });
 
           const data = await res.json();
           alert(res.ok ? "SubVendor created successfully!" : data.error);
-          if (res.ok) loadSubVendors();
+          if (res.ok) {
+            loadSubVendors();
+            loadFleetOverview();
+          }
         });
 
-      // ✅ Logout
       document.getElementById("logoutBtn").addEventListener("click", () => {
         localStorage.clear();
-        window.location.href = "vendor-login.html";
+        window.location.href = "index.html";
       });
 
-      // 🚀 Init sequence
-      async function init() {
-        await verifyLogin();
-        await loadVendorInfo();
-        await loadSubVendors();
-      }
-      document.getElementById("complianceBtn").addEventListener("click", () => {
-        window.location.href = "super-compliance.html";
-      });
-
-      init();
+      verifyLogin();
+      loadSubVendors();
+      loadFleetOverview();
     </script>
   </body>
 </html>

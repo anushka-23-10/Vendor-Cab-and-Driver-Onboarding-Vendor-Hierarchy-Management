@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Vendor from "../models/vendor.model.js";
-
+import Vehicle from "../models/vehicle.model.js";
+import Driver from "../models/driver.model.js";
+import Document from "../models/document.model.js";
 // 🟢 Register SuperVendor
 export const registerSuperVendor = async (req, res) => {
   try {
@@ -167,6 +169,56 @@ export const getMySubVendors = async (req, res) => {
     res.json({ vendors: mySubvendors });
   } catch (err) {
     console.error("❌ getMySubVendors:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+export const getVendorFleetOverview = async (req, res) => {
+  try {
+    if (req.user.role !== "SuperVendor") {
+      return res.status(403).json({ error: "Only SuperVendor can view this dashboard" });
+    }
+
+    // 🧠 Fetch all SubVendors under the SuperVendor
+    const subvendors = await Vendor.find({ parentVendorId: req.user.id })
+      .select("name role region contactInfo");
+
+    if (subvendors.length === 0)
+      return res.json({ overview: [] });
+
+    const overview = await Promise.all(
+      subvendors.map(async (v) => {
+        const vehicles = await Vehicle.find({ vendorId: v._id });
+        const drivers = await Driver.find({ vendorId: v._id });
+        const docs = await Document.find({ vendorId: v._id });
+
+        const totalDocs = docs.length;
+        const approved = docs.filter((d) => d.status === "Approved").length;
+        const pending = docs.filter((d) => d.status === "Pending").length;
+        const rejected = docs.filter((d) => d.status === "Rejected").length;
+
+        const complianceRate = totalDocs
+          ? Math.round((approved / totalDocs) * 100)
+          : 0;
+
+        return {
+          vendorName: v.name,
+          role: v.role,
+          region: v.region || "N/A",
+          contact: v.contactInfo,
+          fleetCount: vehicles.length,
+          driverCount: drivers.length,
+          totalDocs,
+          approved,
+          pending,
+          rejected,
+          complianceRate,
+        };
+      })
+    );
+
+    res.json({ overview });
+  } catch (err) {
+    console.error("❌ getVendorFleetOverview error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };

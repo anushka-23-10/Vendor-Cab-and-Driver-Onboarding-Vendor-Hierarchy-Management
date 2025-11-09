@@ -1,7 +1,7 @@
 import Vehicle from "../models/vehicle.model.js";
 import Vendor from "../models/vendor.model.js";
 import Driver from "../models/driver.model.js";
-
+import Document from "../models/document.model.js";
 // 🟢 Add new vehicle
 export const addVehicle = async (req, res) => {
   try {
@@ -39,11 +39,15 @@ export const assignDriver = async (req, res) => {
 
     const vehicle = await Vehicle.findOne({ _id: vehicleId, vendorId });
     if (!vehicle)
-      return res.status(404).json({ error: "Vehicle not found or unauthorized" });
+      return res
+        .status(404)
+        .json({ error: "Vehicle not found or unauthorized" });
 
     const driver = await Driver.findOne({ _id: driverId, vendorId });
     if (!driver)
-      return res.status(404).json({ error: "Driver not found or unauthorized" });
+      return res
+        .status(404)
+        .json({ error: "Driver not found or unauthorized" });
 
     vehicle.assignedDriver = driver._id;
     await vehicle.save();
@@ -64,6 +68,48 @@ export const getVehicles = async (req, res) => {
     );
     res.json({ vehicles });
   } catch (err) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// ✅ Get Fleet Overview for a Vendor
+export const getFleetOverview = async (req, res) => {
+  try {
+    const vendorId = req.user.id;
+
+    // Find all vehicles for the vendor
+    const vehicles = await Vehicle.find({ vendorId }).lean();
+
+    // Attach driver info to each vehicle
+    const fleet = await Promise.all(
+      vehicles.map(async (v) => {
+        const driver = await Driver.findOne({ assignedVehicle: v._id });
+        let compliance = "N/A";
+
+        if (driver) {
+          const docs = await Document.find({ driverId: driver._id });
+          if (!docs.length) compliance = "⚠️ No Docs";
+          else if (docs.some((d) => ["Rejected", "Expired"].includes(d.status)))
+            compliance = "❌ Non-Compliant";
+          else if (docs.every((d) => d.status === "Approved"))
+            compliance = "✅ Compliant";
+          else compliance = "🕒 Pending";
+        }
+
+        return {
+          registrationNumber: v.registrationNumber,
+          model: v.model,
+          fuelType: v.fuelType,
+          seatingCapacity: v.seatingCapacity,
+          assignedDriver: driver ? driver.name : "-",
+          compliance,
+        };
+      })
+    );
+
+    res.json({ fleet });
+  } catch (err) {
+    console.error("❌ getFleetOverview:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };

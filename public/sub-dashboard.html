@@ -139,17 +139,27 @@
 
     <div id="vendorInfo">
       <b>Logged in as:</b> <span id="vendorName">Loading...</span> |
-      <b>Role:</b> <span id="vendorRole">-</span> |
-      <b>Region:</b> <span id="vendorRegion">-</span>
+      <b>Role:</b> <span id="vendorRole">-</span> | <b>Region:</b>
+      <span id="vendorRegion">-</span>
     </div>
 
     <!-- ========== VEHICLES ========== -->
     <section>
       <h3>🚗 Vehicle Management</h3>
       <form id="vehicleForm">
-        <input type="text" id="regNum" placeholder="Registration Number" required />
+        <input
+          type="text"
+          id="regNum"
+          placeholder="Registration Number"
+          required
+        />
         <input type="text" id="model" placeholder="Model" required />
-        <input type="text" id="capacity" placeholder="Seating Capacity" required />
+        <input
+          type="text"
+          id="capacity"
+          placeholder="Seating Capacity"
+          required
+        />
         <input type="text" id="fuel" placeholder="Fuel Type" required />
         <button type="submit">Add Vehicle</button>
       </form>
@@ -187,6 +197,7 @@
             <th>License</th>
             <th>Email</th>
             <th>Vehicle</th>
+            <th>Compliance</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -230,8 +241,18 @@
     <section>
       <h3>🏢 SubVendor Hierarchy</h3>
       <form id="childVendorForm">
-        <input type="text" id="childName" placeholder="SubVendor Name" required />
-        <input type="email" id="childContact" placeholder="Contact Email" required />
+        <input
+          type="text"
+          id="childName"
+          placeholder="SubVendor Name"
+          required
+        />
+        <input
+          type="email"
+          id="childContact"
+          placeholder="Contact Email"
+          required
+        />
         <input type="text" id="childUsername" placeholder="Username" required />
         <select id="childRole" required></select>
         <input type="text" id="childRegion" placeholder="Region" required />
@@ -251,11 +272,32 @@
         <tbody></tbody>
       </table>
     </section>
+    <section>
+      <h3>Fleet Overview</h3>
+      <table id="fleetTable">
+        <thead>
+          <tr>
+            <th>Registration No.</th>
+            <th>Model</th>
+            <th>Fuel Type</th>
+            <th>Seating</th>
+            <th>Assigned Driver</th>
+            <th>Compliance</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
     <script>
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
-      const allowedRoles = ["SubVendor", "RegionalVendor", "CityVendor", "LocalVendor"];
+      const allowedRoles = [
+        "SubVendor",
+        "RegionalVendor",
+        "CityVendor",
+        "LocalVendor",
+      ];
 
       if (!token || !allowedRoles.includes(role)) {
         alert("Unauthorized access. Please log in as a valid SubVendor.");
@@ -277,14 +319,16 @@
 
         document.getElementById("vendorName").innerText = data.vendor.name;
         document.getElementById("vendorRole").innerText = data.vendor.role;
-        document.getElementById("vendorRegion").innerText = data.vendor.region || "N/A";
+        document.getElementById("vendorRegion").innerText =
+          data.vendor.region || "N/A";
 
-        const allowed = {
-          SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
-          RegionalVendor: ["CityVendor", "LocalVendor"],
-          CityVendor: ["LocalVendor"],
-          LocalVendor: [],
-        }[data.vendor.role] || [];
+        const allowed =
+          {
+            SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
+            RegionalVendor: ["CityVendor", "LocalVendor"],
+            CityVendor: ["LocalVendor"],
+            LocalVendor: [],
+          }[data.vendor.role] || [];
 
         document.getElementById("childRole").innerHTML = allowed
           .map((r) => `<option value="${r}">${r}</option>`)
@@ -335,10 +379,52 @@
         }
 
         data.drivers.forEach((d) => {
+          const color = d.compliant ? "green" : "red";
+          const badge = d.compliant ? "✅ Compliant" : "⚠️ Non-Compliant";
+
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${d.name}</td><td>${d.licenseNumber}</td><td>${d.contactInfo}</td><td>${d.assignedVehicle || "-"}</td>`;
+          tr.innerHTML = `
+      <td>${d.name}</td>
+      <td>${d.licenseNumber}</td>
+      <td>${d.contactInfo}</td>
+      <td>${d.assignedVehicle || "-"}</td>
+      <td class="${color}">${badge}</td>
+    `;
           tbody.appendChild(tr);
           driverSelect.innerHTML += `<option value="${d._id}">${d.name}</option>`;
+        });
+      }
+      async function loadFleetOverview() {
+        const res = await fetch("/api/vehicles/overview", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const tbody = document.querySelector("#fleetTable tbody");
+        tbody.innerHTML = "";
+
+        if (!data.fleet || data.fleet.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" style="text-align:center;">No vehicles found</td></tr>';
+          return;
+        }
+
+        data.fleet.forEach((v) => {
+          const color = v.compliance.includes("✅")
+            ? "green"
+            : v.compliance.includes("❌")
+            ? "red"
+            : "orange";
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+      <td>${v.registrationNumber}</td>
+      <td>${v.model}</td>
+      <td>${v.fuelType}</td>
+      <td>${v.seatingCapacity}</td>
+      <td>${v.assignedDriver}</td>
+      <td class="${color}">${v.compliance}</td>
+    `;
+          tbody.appendChild(tr);
         });
       }
 
@@ -368,7 +454,9 @@
             <td>${d.driverId?.name || "-"}</td>
             <td>${d.docType}</td>
             <td>${new Date(d.uploadDate).toLocaleDateString()}</td>
-            <td>${d.expiryDate ? new Date(d.expiryDate).toLocaleDateString() : "-"}</td>
+            <td>${
+              d.expiryDate ? new Date(d.expiryDate).toLocaleDateString() : "-"
+            }</td>
             <td class="${color}">${d.status}</td>
             <td><a href="${d.filePath}" target="_blank">📄 View</a></td>
           `;
@@ -402,75 +490,93 @@
       });
 
       // 🔹 Add Vehicle
-      document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const res = await fetch("/api/vehicles/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            registrationNumber: regNum.value,
-            model: model.value,
-            capacity: capacity.value,
-            fuelType: fuel.value,
-          }),
+      document
+        .getElementById("vehicleForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const res = await fetch("/api/vehicles/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              registrationNumber: regNum.value,
+              model: model.value,
+              capacity: capacity.value,
+              fuelType: fuel.value,
+            }),
+          });
+          alert(res.ok ? "Vehicle added!" : "Error adding vehicle");
+          loadVehicles();
         });
-        alert(res.ok ? "Vehicle added!" : "Error adding vehicle");
-        loadVehicles();
-      });
 
       // 🔹 Add Driver
-      document.getElementById("driverForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const res = await fetch("/api/drivers/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            name: driverName.value,
-            licenseNumber: license.value,
-            contactInfo: email.value,
-            assignedVehicle: assignVehicle.value,
-          }),
+      document
+        .getElementById("driverForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const res = await fetch("/api/drivers/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: driverName.value,
+              licenseNumber: license.value,
+              contactInfo: email.value,
+              assignedVehicle: assignVehicle.value,
+            }),
+          });
+          alert(res.ok ? "Driver added!" : "Error adding driver");
+          loadDrivers();
         });
-        alert(res.ok ? "Driver added!" : "Error adding driver");
-        loadDrivers();
-      });
 
       // 🔹 Upload Document
-      document.getElementById("uploadForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append("driverId", driverSelect.value);
-        formData.append("docType", docType.value);
-        formData.append("expiryDate", expiryDate.value);
-        formData.append("file", fileInput.files[0]);
-        const res = await fetch("/api/documents/upload", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append("driverId", driverSelect.value);
+          formData.append("docType", docType.value);
+          formData.append("expiryDate", expiryDate.value);
+          formData.append("file", fileInput.files[0]);
+          const res = await fetch("/api/documents/upload", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          });
+          alert(res.ok ? "Document uploaded!" : "Error uploading document");
+          loadDocuments();
         });
-        alert(res.ok ? "Document uploaded!" : "Error uploading document");
-        loadDocuments();
-      });
 
       // 🔹 Create Child Vendor
-      document.getElementById("childVendorForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const res = await fetch("/api/vendors/create-subvendor", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            name: childName.value,
-            contactInfo: childContact.value,
-            username: childUsername.value,
-            role: childRole.value,
-            region: childRegion.value,
-          }),
+      document
+        .getElementById("childVendorForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const res = await fetch("/api/vendors/create-subvendor", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: childName.value,
+              contactInfo: childContact.value,
+              username: childUsername.value,
+              role: childRole.value,
+              region: childRegion.value,
+            }),
+          });
+          alert(res.ok ? "SubVendor created!" : "Error creating subvendor");
+          loadChildVendors();
         });
-        alert(res.ok ? "SubVendor created!" : "Error creating subvendor");
-        loadChildVendors();
-      });
 
       verifyLogin();
+      loadFleetOverview(); // ✅ show Fleet overview table automatically
     </script>
   </body>
 </html>
