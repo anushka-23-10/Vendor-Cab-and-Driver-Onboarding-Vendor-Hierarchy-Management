@@ -42,7 +42,7 @@
         margin-top: 25px;
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        max-width: 800px;
+        max-width: 850px;
       }
 
       h3 {
@@ -99,22 +99,58 @@
       <button id="logoutBtn">Logout</button>
     </header>
 
+    <!-- 🧠 Vendor Info -->
+    <section
+      id="vendorInfo"
+      style="
+        background: #eef3ff;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-size: 15px;
+      "
+    >
+      <b>Logged in as:</b> <span id="vendorName">Loading...</span><br />
+      <b>Role:</b> <span id="vendorRole">-</span><br />
+      <b>Region:</b> <span id="vendorRegion">-</span>
+    </section>
+
+    <!-- 🧩 Create SubVendor -->
     <section>
       <h3>Create SubVendor</h3>
       <form id="createSubForm">
         <input type="text" id="subName" placeholder="SubVendor Name" required />
-        <input type="email" id="subContact" placeholder="Contact Email" required />
-        <input type="text" id="subUsername" placeholder="Username for login" required />
+        <input
+          type="email"
+          id="subContact"
+          placeholder="Contact Email"
+          required
+        />
+        <input
+          type="text"
+          id="subUsername"
+          placeholder="Username for login"
+          required
+        />
         <label>SubVendor Role:</label>
         <select id="subRole">
           <option value="RegionalVendor">RegionalVendor</option>
           <option value="CityVendor">CityVendor</option>
           <option value="LocalVendor">LocalVendor</option>
         </select>
+
+        <input
+          type="text"
+          id="subRegion"
+          placeholder="Region (e.g., North Zone, Delhi)"
+          required
+        />
+
         <button type="submit">Create SubVendor</button>
       </form>
     </section>
 
+    <!-- 📋 List of Subvendors -->
     <section>
       <h3>Your SubVendors</h3>
       <table id="vendorTable">
@@ -123,6 +159,7 @@
             <th>Name</th>
             <th>Contact</th>
             <th>Role</th>
+            <th>Region</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -133,9 +170,10 @@
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
 
+      // 🚨 Login protection
       if (!token || !role) {
         alert("Please login first.");
-        window.location.href = "index.html";
+        window.location.href = "vendor-login.html";
       }
 
       if (role !== "SuperVendor") {
@@ -143,6 +181,7 @@
         window.location.href = "sub-dashboard.html";
       }
 
+      // ✅ Verify session
       async function verifyLogin() {
         try {
           const res = await fetch("/api/vendors/me", {
@@ -152,62 +191,102 @@
         } catch (err) {
           alert("Session expired. Please login again.");
           localStorage.clear();
-          window.location.href = "index.html";
+          window.location.href = "vendor-login.html";
         }
       }
 
-      async function loadSubVendors() {
-        const res = await fetch("/api/vendors/my-subvendors", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-
-        const tbody = document.querySelector("#vendorTable tbody");
-        tbody.innerHTML = "";
-
-        if (data.vendors && data.vendors.length > 0) {
-          data.vendors.forEach((v) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${v.name}</td>
-              <td>${v.contactInfo}</td>
-              <td>${v.role}</td>
-            `;
-            tbody.appendChild(tr);
+      // ✅ Load vendor info for header section
+      async function loadVendorInfo() {
+        try {
+          const res = await fetch("/api/vendors/me", {
+            headers: { Authorization: `Bearer ${token}` },
           });
-        } else {
-          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">No subvendors found</td></tr>`;
+          const data = await res.json();
+
+          if (!res.ok || !data.vendor) {
+            console.warn("⚠️ Unable to fetch vendor info:", data.error);
+            document.getElementById("vendorName").innerText = "N/A";
+            return;
+          }
+
+          document.getElementById("vendorName").innerText = data.vendor.name;
+          document.getElementById("vendorRole").innerText = data.vendor.role;
+          document.getElementById("vendorRegion").innerText =
+            data.vendor.region || "N/A";
+        } catch (err) {
+          console.error("Error loading vendor info:", err.message);
         }
       }
 
-      document.getElementById("createSubForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const name = subName.value;
-        const contactInfo = subContact.value;
-        const username = subUsername.value;
-        const role = subRole.value;
+      // ✅ Fetch subvendors
+      async function loadSubVendors() {
+        try {
+          const res = await fetch("/api/vendors/my-subvendors", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
 
-        const res = await fetch("/api/vendors/create-subvendor", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ name, contactInfo, username, role }),
+          const tbody = document.querySelector("#vendorTable tbody");
+          tbody.innerHTML = "";
+
+          if (data.vendors && data.vendors.length > 0) {
+            data.vendors.forEach((v) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${v.name}</td>
+                <td>${v.contactInfo}</td>
+                <td>${v.role}</td>
+                <td>${v.region || "-"}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          } else {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No subvendors found</td></tr>`;
+          }
+        } catch (err) {
+          console.error("Error loading subvendors:", err.message);
+        }
+      }
+
+      // ✅ Create new SubVendor
+      document
+        .getElementById("createSubForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = subName.value;
+          const contactInfo = subContact.value;
+          const username = subUsername.value;
+          const role = subRole.value;
+          const region = subRegion.value;
+
+          const res = await fetch("/api/vendors/create-subvendor", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ name, contactInfo, username, role, region }),
+          });
+
+          const data = await res.json();
+          alert(res.ok ? "SubVendor created successfully!" : data.error);
+          if (res.ok) loadSubVendors();
         });
 
-        const data = await res.json();
-        alert(res.ok ? "SubVendor created successfully!" : data.error);
-        if (res.ok) loadSubVendors();
-      });
-
+      // ✅ Logout
       document.getElementById("logoutBtn").addEventListener("click", () => {
         localStorage.clear();
-        window.location.href = "index.html";
+        window.location.href = "vendor-login.html";
       });
 
-      verifyLogin();
-      loadSubVendors();
+      // 🚀 Init sequence
+      async function init() {
+        await verifyLogin();
+        await loadVendorInfo();
+        await loadSubVendors();
+      }
+
+      init();
     </script>
   </body>
 </html>

@@ -2,78 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Activate SubVendor Account</title>
+  <title>Activate Account</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      text-align: center;
-      padding-top: 100px;
+      font-family: "Segoe UI", sans-serif;
+      background: #f7f9fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     form {
       background: white;
       padding: 30px;
       border-radius: 10px;
-      display: inline-block;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      width: 350px;
     }
     input {
       display: block;
-      margin: 10px auto;
+      width: 100%;
+      margin: 10px 0;
       padding: 10px;
-      width: 250px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
     button {
-      padding: 10px 25px;
-      background: #28a745;
-      border: none;
-      border-radius: 5px;
+      background: #007bff;
       color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      width: 100%;
       cursor: pointer;
-      margin-top: 10px;
     }
     button:hover {
-      background: #218838;
+      background: #0056b3;
     }
-    a {
-      color: #007bff;
-      text-decoration: none;
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  <h2>Activate Your SubVendor Account</h2>
   <form id="activateForm">
-    <input type="text" id="username" placeholder="Your Username" required />
-    <input type="password" id="newPassword" placeholder="Set New Password" required />
-    <button type="submit">Activate Account</button>
+    <h2>Activate Account</h2>
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="password" id="password" placeholder="New Password" required />
+    <button type="submit">Activate</button>
+    <p id="msg"></p>
   </form>
-
-  <p><a href="vendor-login.html">Already Activated? Login Here</a></p>
-  <p><a href="index.html">← Back to Home</a></p>
 
   <script>
     document.getElementById("activateForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const username = document.getElementById("username").value;
-      const newPassword = document.getElementById("newPassword").value;
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
 
       const res = await fetch("/api/auth/activate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, newPassword }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
+      const msg = document.getElementById("msg");
+
       if (res.ok) {
-        alert("Account activated successfully! You can now log in.");
-        window.location.href = "vendor-login.html";
+        msg.textContent = "✅ Account activated successfully! You can now log in.";
+        msg.style.color = "green";
       } else {
-        alert(data.error || "Activation failed.");
+        msg.textContent = data.error || "Activation failed";
+        msg.style.color = "red";
       }
     });
   </script>

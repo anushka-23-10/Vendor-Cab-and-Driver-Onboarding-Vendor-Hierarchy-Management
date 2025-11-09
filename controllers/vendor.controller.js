@@ -1,16 +1,18 @@
 import Vendor from "../models/vendor.model.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
-// 🧩 Get current vendor details
+// 🧩 Get current vendor info
 export const getMyVendor = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user.id })
-      .populate("parentVendorId", "name role")
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const vendor = await Vendor.findOne({ userId })
+      .populate("parentVendorId", "name role region")
       .lean();
 
     if (!vendor) {
-      console.warn("⚠️ No vendor found for user:", req.user.username);
+      console.warn(`⚠️ No Vendor record found for ${req.user.username}`);
       return res.status(200).json({ vendor: null });
     }
 
@@ -24,8 +26,8 @@ export const getMyVendor = async (req, res) => {
 // 🧩 Create SubVendor
 export const createSubVendor = async (req, res) => {
   try {
-    const { name, contactInfo, username, role } = req.body;
-    const parentRole = req.user.role;
+    const { name, contactInfo, username, role, region } = req.body;
+    const parentRole = req.user.role.trim();
 
     const allowedRoles = {
       SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
@@ -57,14 +59,22 @@ export const createSubVendor = async (req, res) => {
     });
 
     const parentVendor = await Vendor.findOne({ userId: req.user.id });
+    if (!parentVendor)
+      return res.status(400).json({ error: "Parent vendor not found" });
 
+    // ✅ Create vendor record linked to new user
     const subVendor = await Vendor.create({
       name,
       contactInfo,
       role,
-      parentVendorId: parentVendor ? parentVendor._id : null,
+      region: region || "Unspecified",
+      parentVendorId: parentVendor._id,
       userId: newUser._id,
     });
+
+    console.log(
+      `✅ Created ${role}: ${name} (Region: ${region || "Unspecified"}) under ${parentVendor.name}`
+    );
 
     res.status(201).json({
       message: `${role} created successfully`,
@@ -85,7 +95,7 @@ export const getSubVendors = async (req, res) => {
       return res.status(404).json({ error: "Vendor not found" });
 
     const subVendors = await Vendor.find({ parentVendorId: vendor._id })
-      .select("name contactInfo role")
+      .select("name contactInfo role region")
       .lean();
 
     res.status(200).json({ vendors: subVendors });

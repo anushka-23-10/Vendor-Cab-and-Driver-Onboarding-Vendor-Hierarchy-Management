@@ -1,62 +1,43 @@
-// controllers/driver.controller.js
-import mongoose from "mongoose";
+import Driver from "../models/driver.model.js";
+import Vendor from "../models/vendor.model.js";
 
-const driverSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  licenseNumber: { type: String, required: true },
-  contactInfo: { type: String, required: true },
-  assignedVehicle: { type: String, default: "" },
-  vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor", required: true }, // foreign key
-});
-
-export const Driver = mongoose.model("Driver", driverSchema);
-
-/**
- * Create a new driver under the logged-in vendor
- */
+// 🧩 Add Driver
 export const createDriver = async (req, res) => {
   try {
-    if (!req.user?.vendorId)
-      return res.status(401).json({ error: "Unauthorized" });
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+    if (!vendor)
+      return res.status(403).json({ error: "Vendor not found or unauthorized" });
 
     const { name, licenseNumber, contactInfo, assignedVehicle } = req.body;
-
-    if (!name || !licenseNumber || !contactInfo) {
-      return res
-        .status(400)
-        .json({ error: "Name, license number, and contact info are required." });
-    }
 
     const driver = await Driver.create({
       name,
       licenseNumber,
       contactInfo,
       assignedVehicle,
-      vendorId: req.user.vendorId,
+      vendorId: vendor._id, // ✅ foreign key reference
     });
 
-    res
-      .status(201)
-      .json({ message: "Driver added successfully", driver });
+    console.log(`✅ Driver ${driver.name} added by ${vendor.name}`);
+    res.status(201).json({ message: "Driver added successfully", driver });
   } catch (err) {
-    console.error("createDriver error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("❌ createDriver error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/**
- * Fetch all drivers for the logged-in vendor
- */
+// 🧩 List Drivers belonging to this Vendor
 export const getMyDrivers = async (req, res) => {
   try {
-    if (!req.user?.vendorId)
-      return res.status(401).json({ error: "Unauthorized" });
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+    if (!vendor)
+      return res.status(403).json({ error: "Vendor not found or unauthorized" });
 
-    const drivers = await Driver.find({ vendorId: req.user.vendorId }).lean();
+    const drivers = await Driver.find({ vendorId: vendor._id }).lean();
 
-    res.json({ drivers });
+    res.status(200).json({ drivers });
   } catch (err) {
-    console.error("getMyDrivers error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("❌ getMyDrivers error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -4,49 +4,38 @@ const API_BASE = "http://localhost:5000/api";
 async function login() {
   const username = document.getElementById("loginUsername").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
-  const msg = document.getElementById("loginMsg");
 
-  if (!username || !password) {
-    msg.innerText = "Please enter both username and password.";
-    return;
-  }
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
 
-  try {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+  const data = await res.json();
 
-    const data = await res.json();
+  if (res.ok && data.token) {
+    // ✅ Store clean token + role
+    localStorage.setItem("token", data.token);
 
-    if (res.ok && data.token) {
-      // ✅ Save token + role securely before redirect
-      localStorage.setItem("token", data.token);
+    // decode token payload
+    const payload = JSON.parse(atob(data.token.split(".")[1]));
+    localStorage.setItem("role", payload.role);
 
-      const payload = JSON.parse(atob(data.token.split(".")[1]));
-      localStorage.setItem("role", payload.role);
-
-      msg.innerText = "✅ Login successful! Redirecting...";
-
-      // ✅ Delay redirect to ensure localStorage write completes
-      setTimeout(() => {
-        if (payload.role === "SuperVendor") {
-          window.location.href = "super-dashboard.html";
-        } else if (payload.role === "SubVendor") {
-          window.location.href = "sub-dashboard.html";
-        } else {
-          alert("Unknown role. Please contact admin.");
-        }
-      }, 300);
+    // ✅ Redirect based on role
+    if (payload.role === "SuperVendor") {
+      window.location.href = "super-dashboard.html";
+    } else if (
+      ["RegionalVendor", "CityVendor", "LocalVendor"].includes(payload.role)
+    ) {
+      window.location.href = "sub-dashboard.html";
     } else {
-      msg.innerText = data.error || "Invalid credentials. Try again.";
+      alert("Unknown role: " + payload.role);
     }
-  } catch (err) {
-    console.error("❌ Login error:", err);
-    msg.innerText = "Server not responding. Please try later.";
+  } else {
+    alert(data.error || "Login failed");
   }
 }
+
 
 // --- REGISTER (for SuperVendor only) ---
 async function register() {
