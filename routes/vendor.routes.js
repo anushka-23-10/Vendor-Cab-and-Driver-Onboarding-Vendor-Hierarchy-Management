@@ -1,31 +1,37 @@
 import express from "express";
 import {
+  registerSuperVendor,
+  loginVendor,
   createSubVendor,
-  getSubVendors,
+  activateVendor,
   getMyVendor,
+  getMySubVendors,
 } from "../controllers/vendor.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
-// ✅ Only these roles can create subvendors
+// 🟢 Registration + Login
+router.post("/register", registerSuperVendor);
+router.post("/login", loginVendor);
+
+// 🟣 Activation
+router.post("/activate", activateVendor);
+
+// 🧩 Vendor Hierarchy
 router.post(
   "/create-subvendor",
   authenticate,
   authorize(["SuperVendor", "RegionalVendor", "CityVendor"]),
   createSubVendor
 );
-
-// ✅ Only Super/Regional/City vendors can view their subvendors
 router.get(
   "/my-subvendors",
   authenticate,
   authorize(["SuperVendor", "RegionalVendor", "CityVendor"]),
-  getSubVendors
+  getMySubVendors
 );
-
-// ✅ All vendors can fetch their info
 router.get("/me", authenticate, getMyVendor);
 
 export default router;

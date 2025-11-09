@@ -81,6 +81,55 @@
       </p>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+      const API_BASE = "http://localhost:5000/api/vendors";
+
+      async function login() {
+        const username = document.getElementById("loginUsername").value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+        const msg = document.getElementById("loginMsg");
+
+        msg.innerText = "⏳ Logging in...";
+
+        try {
+          const res = await fetch(`${API_BASE}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.token) {
+            const payload = JSON.parse(atob(data.token.split(".")[1]));
+
+            // ✅ Save to localStorage
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("role", payload.role);
+
+            msg.style.color = "green";
+            msg.innerText = "✅ Login successful! Redirecting...";
+
+            // ✅ Redirect based on role
+            if (payload.role === "SuperVendor") {
+              window.location.href = "super-dashboard.html";
+            } else if (
+              ["RegionalVendor", "CityVendor", "LocalVendor"].includes(payload.role)
+            ) {
+              window.location.href = "sub-dashboard.html";
+            } else {
+              alert("Unknown role detected. Contact admin.");
+            }
+          } else {
+            msg.style.color = "red";
+            msg.innerText = data.error || "❌ Invalid credentials";
+          }
+        } catch (err) {
+          console.error("❌ Login error:", err);
+          msg.style.color = "red";
+          msg.innerText = "Server error. Please try again later.";
+        }
+      }
+    </script>
   </body>
 </html>

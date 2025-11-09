@@ -132,6 +132,11 @@
           placeholder="Username for login"
           required
         />
+        <input
+          type="text"
+          id="subPassword"
+          placeholder="Temporary Password (optional)"
+        />
         <label>SubVendor Role:</label>
         <select id="subRole">
           <option value="RegionalVendor">RegionalVendor</option>
@@ -185,13 +190,19 @@
       async function verifyLogin() {
         try {
           const res = await fetch("/api/vendors/me", {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           });
-          if (!res.ok) throw new Error("Session expired");
+
+          if (!res.ok) throw new Error("Invalid token or expired session");
+
+          const data = await res.json();
+          console.log("✅ Verified:", data.vendor?.username, data.vendor?.role);
         } catch (err) {
-          alert("Session expired. Please login again.");
+          alert("Session expired. Please log in again.");
           localStorage.clear();
-          window.location.href = "vendor-login.html";
+          window.location.href = "index.html";
         }
       }
 
@@ -258,6 +269,7 @@
           const username = subUsername.value;
           const role = subRole.value;
           const region = subRegion.value;
+          const password = subPassword.value;
 
           const res = await fetch("/api/vendors/create-subvendor", {
             method: "POST",
@@ -265,7 +277,14 @@
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ name, contactInfo, username, role, region }),
+            body: JSON.stringify({
+              name,
+              contactInfo,
+              username,
+              role,
+              region,
+              password,
+            }),
           });
 
           const data = await res.json();

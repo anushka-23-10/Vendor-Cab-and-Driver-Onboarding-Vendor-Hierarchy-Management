@@ -1,35 +1,91 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"/><title>Register SuperVendor</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register SuperVendor</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #eef3ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h2 { color: #007bff; }
+    form {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    input {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
 <body>
   <h2>SuperVendor Registration</h2>
   <form id="registerForm">
-    <input type="text" id="superVendorId" placeholder="SuperVendor ID (optional)" />
-    <input type="text" id="username" placeholder="Username" required />
-    <input type="password" id="password" placeholder="Password" required />
+    <input type="text" id="regUsername" placeholder="Username" required />
+    <input type="password" id="regPassword" placeholder="Password" required />
+    <input type="text" id="regName" placeholder="Full Name / Company Name" required />
+    <input type="email" id="regContact" placeholder="Contact Email" required />
+    <input type="text" id="regRegion" placeholder="Region (optional)" />
     <button type="submit">Register</button>
   </form>
-  <p><a href="index.html">Back</a></p>
 
   <script>
+    const API_BASE = "http://localhost:5000/api/vendors";
+
     document.getElementById("registerForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const superVendorId = document.getElementById("superVendorId").value || null;
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
 
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, superVendorId }),
-      });
+      const username = document.getElementById("regUsername").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+      const name = document.getElementById("regName").value.trim();
+      const contactInfo = document.getElementById("regContact").value.trim();
+      const region = document.getElementById("regRegion").value.trim();
 
-      const data = await res.json();
-      if (res.ok) {
-        alert("SuperVendor registered. Please login.");
-        window.location.href = "super-login.html";
-      } else {
-        alert(data.error || "Registration failed");
+      try {
+        const res = await fetch(`${API_BASE}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password, name, contactInfo, region })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ SuperVendor registered successfully!");
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", "SuperVendor");
+          window.location.href = "super-login.html";
+        } else {
+          alert(data.error || "Registration failed");
+        }
+      } catch (err) {
+        console.error("❌ Register error:", err);
+        alert("Server error. Please try again.");
       }
     });
   </script>

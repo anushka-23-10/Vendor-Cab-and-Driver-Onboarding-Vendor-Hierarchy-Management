@@ -181,6 +181,22 @@
       </form>
     </section>
 
+    <section>
+      <h3>Your SubVendors</h3>
+      <table id="subVendorTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Contact</th>
+            <th>Region</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
     <script>
       // --- Token + Role Check ---
       const token = localStorage.getItem("token");
@@ -200,17 +216,17 @@
       async function verifyLogin() {
         try {
           const res = await fetch("/api/vendors/me", {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           });
-          if (!res.ok) throw new Error("Session expired or invalid token");
+
+          if (!res.ok) throw new Error("Invalid token or expired session");
+
           const data = await res.json();
-          console.log(
-            "✅ Verified session for:",
-            data.vendor?.name || "Unknown"
-          );
+          console.log("✅ Verified:", data.vendor?.username, data.vendor?.role);
         } catch (err) {
-          console.warn("❌ Token invalid:", err.message);
-          alert("Your session expired. Please log in again.");
+          alert("Session expired. Please log in again.");
           localStorage.clear();
           window.location.href = "index.html";
         }
@@ -241,9 +257,38 @@
         }
       }
 
+      async function loadSubVendors() {
+        const res = await fetch("/api/vendors/my-subvendors", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        const tbody = document.querySelector("#subVendorTable tbody");
+        tbody.innerHTML = "";
+
+        if (data.vendors && data.vendors.length > 0) {
+          data.vendors.forEach((v) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+        <td>${v.name}</td>
+        <td>${v.username}</td>
+        <td>${v.role}</td>
+        <td>${v.contactInfo}</td>
+        <td>${v.region}</td>
+      `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No child vendors found</td></tr>`;
+        }
+      }
+
       // --- Initialize dashboard ---
       async function init() {
         await loadVendorInfo();
+        await loadDrivers();
+        await loadSubVendors();
+
         await verifyLogin();
         const meRes = await fetch("/api/vendors/me", {
           headers: { Authorization: `Bearer ${token}` },

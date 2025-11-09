@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import morgan from "morgan";
 import bodyParser from "body-parser";
-import authRoutes from "./routes/auth.routes.js";
+// import authRoutes from "./routes/auth.routes.js";
 import vendorRoutes from "./routes/vendor.routes.js";
 import driverRoutes from "./routes/driver.routes.js";
 import vehicleRoutes from "./routes/vehicle.routes.js";
@@ -18,7 +18,7 @@ app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
 
 // Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", vendorRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/vehicles", vehicleRoutes);

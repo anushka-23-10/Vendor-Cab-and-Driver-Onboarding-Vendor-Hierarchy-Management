@@ -1,24 +1,65 @@
-import Vendor from "../models/vendor.model.js";
-import User from "../models/user.model.js";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
+import Vendor from "../models/vendor.model.js";
 
-// 🧩 Get current vendor info
-export const getMyVendor = async (req, res) => {
+// 🟢 Register SuperVendor
+export const registerSuperVendor = async (req, res) => {
   try {
-    const userId = new mongoose.Types.ObjectId(req.user.id);
-    const vendor = await Vendor.findOne({ userId })
-      .populate("parentVendorId", "name role region")
-      .lean();
+    const { username, password, name, contactInfo, region } = req.body;
 
-    if (!vendor) {
-      console.warn(`⚠️ No Vendor record found for ${req.user.username}`);
-      return res.status(200).json({ vendor: null });
-    }
+    const existing = await Vendor.findOne({ username });
+    if (existing)
+      return res.status(400).json({ error: "Username already exists" });
 
-    res.status(200).json({ vendor });
+    // ❌ don't hash manually — model will hash automatically
+    const vendor = await Vendor.create({
+      username,
+      password,
+      name,
+      contactInfo,
+      region: region || "Head Office",
+      role: "SuperVendor",
+      isActive: true,
+    });
+
+    const token = jwt.sign(
+      { id: vendor._id, username: vendor.username, role: vendor.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.status(201).json({
+      message: "SuperVendor registered successfully",
+      token,
+    });
   } catch (err) {
-    console.error("❌ getMyVendor error:", err.message);
+    console.error("❌ registerSuperVendor:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// 🟡 Login (any vendor)
+export const loginVendor = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const vendor = await Vendor.findOne({ username });
+    if (!vendor) return res.status(404).json({ error: "User not found" });
+
+    if (!vendor.isActive)
+      return res.status(403).json({ error: "Account not activated" });
+
+    const match = await bcrypt.compare(password, vendor.password);
+    if (!match) return res.status(401).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: vendor._id, username: vendor.username, role: vendor.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.status(200).json({ token });
+  } catch (err) {
+    console.error("❌ loginVendor:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -26,81 +67,106 @@ export const getMyVendor = async (req, res) => {
 // 🧩 Create SubVendor
 export const createSubVendor = async (req, res) => {
   try {
-    const { name, contactInfo, username, role, region } = req.body;
-    const parentRole = req.user.role.trim();
+    const { name, username, contactInfo, role, region, password } = req.body;
 
-    const allowedRoles = {
+    if (!name || !username || !contactInfo || !role)
+      return res.status(400).json({ error: "Missing required fields" });
+
+    const parent = await Vendor.findById(req.user.id);
+    if (!parent)
+      return res.status(404).json({ error: "Parent vendor not found" });
+
+    const allowed = {
       SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
       RegionalVendor: ["CityVendor", "LocalVendor"],
       CityVendor: ["LocalVendor"],
       LocalVendor: [],
     };
 
-    if (!allowedRoles[parentRole]?.includes(role)) {
+    if (!allowed[parent.role]?.includes(role)) {
       return res.status(403).json({
-        error: `Invalid role assignment. ${parentRole} can only create: ${
-          allowedRoles[parentRole].join(", ") || "none"
+        error: `${parent.role} can only create: ${
+          allowed[parent.role].join(", ") || "none"
         }`,
       });
     }
 
-    const existing = await User.findOne({ username });
+    const existing = await Vendor.findOne({ username });
     if (existing)
       return res.status(400).json({ error: "Username already exists" });
 
-    const tempPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    const tempPassword = password || Math.random().toString(36).slice(-8);
 
-    const newUser = await User.create({
+    // ❌ don't hash here; let pre-save handle it
+    const subVendor = await Vendor.create({
+      name,
       username,
-      password: hashedPassword,
+      contactInfo,
       role,
+      region: region || "Unassigned",
+      password: tempPassword,
+      parentVendorId: parent._id,
       isActive: false,
     });
 
-    const parentVendor = await Vendor.findOne({ userId: req.user.id });
-    if (!parentVendor)
-      return res.status(400).json({ error: "Parent vendor not found" });
-
-    // ✅ Create vendor record linked to new user
-    const subVendor = await Vendor.create({
-      name,
-      contactInfo,
-      role,
-      region: region || "Unspecified",
-      parentVendorId: parentVendor._id,
-      userId: newUser._id,
-    });
-
-    console.log(
-      `✅ Created ${role}: ${name} (Region: ${region || "Unspecified"}) under ${parentVendor.name}`
-    );
-
     res.status(201).json({
-      message: `${role} created successfully`,
+      message: `SubVendor created successfully. Temporary password: ${tempPassword}`,
       subVendor,
-      tempPassword,
     });
   } catch (err) {
-    console.error("❌ createSubVendor error:", err.message);
+    console.error("❌ createSubVendor error:", err);
+    res.status(500).json({ error: err.message || "Internal server error" });
+  }
+};
+
+// 🟣 Activate account
+export const activateVendor = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const vendor = await Vendor.findOne({ username });
+    if (!vendor) return res.status(404).json({ error: "Vendor not found" });
+    if (vendor.isActive)
+      return res.status(400).json({ error: "Already activated" });
+
+    vendor.password = password; // model will hash automatically
+    vendor.isActive = true;
+    await vendor.save();
+
+    res.json({
+      message: "✅ Account activated successfully! You can now log in.",
+    });
+  } catch (err) {
+    console.error("❌ activateVendor:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 🧩 Get subvendors
-export const getSubVendors = async (req, res) => {
+// 🔍 Get current vendor
+export const getMyVendor = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user.id });
-    if (!vendor)
-      return res.status(404).json({ error: "Vendor not found" });
-
-    const subVendors = await Vendor.find({ parentVendorId: vendor._id })
-      .select("name contactInfo role region")
-      .lean();
-
-    res.status(200).json({ vendors: subVendors });
+    const vendor = await Vendor.findById(req.user.id).populate(
+      "parentVendorId",
+      "name role"
+    );
+    if (!vendor) return res.status(404).json({ error: "Vendor not found" });
+    res.json({ vendor });
   } catch (err) {
-    console.error("❌ getSubVendors error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// 📋 Get subvendors of logged-in vendor
+export const getMySubVendors = async (req, res) => {
+  try {
+    const mySubvendors = await Vendor.find({
+      parentVendorId: req.user.id,
+    }).select("name username contactInfo role region isActive");
+
+    console.log("📋 Found subvendors:", mySubvendors.length);
+
+    res.json({ vendors: mySubvendors });
+  } catch (err) {
+    console.error("❌ getMySubVendors:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };

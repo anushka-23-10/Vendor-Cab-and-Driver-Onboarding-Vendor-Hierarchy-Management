@@ -1,43 +1,40 @@
 import Driver from "../models/driver.model.js";
 import Vendor from "../models/vendor.model.js";
 
-// 🧩 Add Driver
+// 🟢 Add Driver (only active vendors)
 export const createDriver = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user.id });
-    if (!vendor)
-      return res.status(403).json({ error: "Vendor not found or unauthorized" });
-
     const { name, licenseNumber, contactInfo, assignedVehicle } = req.body;
+    const vendorId = req.user.id;
+
+    const vendor = await Vendor.findById(vendorId);
+    if (!vendor || !vendor.isActive)
+      return res.status(403).json({ error: "Vendor not found or unauthorized" });
 
     const driver = await Driver.create({
       name,
       licenseNumber,
       contactInfo,
       assignedVehicle,
-      vendorId: vendor._id, // ✅ foreign key reference
+      vendorId,
     });
 
-    console.log(`✅ Driver ${driver.name} added by ${vendor.name}`);
     res.status(201).json({ message: "Driver added successfully", driver });
   } catch (err) {
-    console.error("❌ createDriver error:", err.message);
+    console.error("❌ createDriver error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 🧩 List Drivers belonging to this Vendor
+// 📋 List all drivers of current vendor
 export const getMyDrivers = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user.id });
-    if (!vendor)
-      return res.status(403).json({ error: "Vendor not found or unauthorized" });
-
-    const drivers = await Driver.find({ vendorId: vendor._id }).lean();
-
-    res.status(200).json({ drivers });
+    const drivers = await Driver.find({ vendorId: req.user.id }).select(
+      "name licenseNumber contactInfo assignedVehicle"
+    );
+    res.json({ drivers });
   } catch (err) {
-    console.error("❌ getMyDrivers error:", err.message);
+    console.error("❌ getMyDrivers error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
