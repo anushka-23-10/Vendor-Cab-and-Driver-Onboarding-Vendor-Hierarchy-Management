@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vehicle Management</title>
+  <script defer src="vehicle.js"></script>
+</head>
+<body>
+  <h2>Vehicle Management</h2>
+  <button onclick="logout()">Logout</button>
+
+  <h3>Add Vehicle</h3>
+  <form id="vehicleForm">
+    <input type="text" id="registrationNo" placeholder="Registration No." required />
+    <input type="text" id="model" placeholder="Model" required />
+    <input type="text" id="fuelType" placeholder="Fuel Type" required />
+    <input type="number" id="capacity" placeholder="Capacity" required />
+    <button type="submit">Add Vehicle</button>
+  </form>
+
+  <h3>Fleet List</h3>
+  <ul id="vehicleList"></ul>
+</body>
+</html>

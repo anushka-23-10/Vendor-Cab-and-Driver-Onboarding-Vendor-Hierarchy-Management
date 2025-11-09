@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendor / SubVendor Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e9ecef;
+      text-align: center;
+      padding-top: 80px;
+    }
+    form {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 220px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 25px;
+      background: #007bff;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>SubVendor Login</h2>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
+
+  <p>
+    Haven’t activated your account yet?  
+    <a href="activate.html">Activate Now</a>
+  </p>
+
+  <p><a href="index.html">← Back to Home</a></p>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        window.location.href = "sub-dashboard.html";
+      } else {
+        alert(data.error || "Login failed. Try activating your account.");
+      }
+    });
+  </script>
+</body>
+</html>

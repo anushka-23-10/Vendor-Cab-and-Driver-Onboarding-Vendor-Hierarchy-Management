@@ -1,21 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Driver Management</title>
-  <script defer src="driver.js"></script>
-</head>
-<body>
-  <h2>Driver Management</h2>
-  <button onclick="logout()">Logout</button>
+<h3>Upload Driver Document</h3>
+<form id="docForm" enctype="multipart/form-data">
+  <label>Driver:</label>
+  <select id="driverSelect" required></select>
 
-  <h3>Onboard Driver</h3>
-  <form id="driverForm">
-    <input type="text" id="driverName" placeholder="Driver Name" required />
-    <input type="text" id="licenseNo" placeholder="License No." required />
-    <button type="submit">Add Driver</button>
-  </form>
+  <label>Document Type:</label>
+  <select id="type" required>
+    <option value="Driving License">Driving License</option>
+    <option value="Vehicle RC">Vehicle RC</option>
+    <option value="Pollution Certificate">Pollution Certificate</option>
+    <option value="Permit">Permit</option>
+  </select>
 
-  <h3>Driver List</h3>
-  <ul id="driverList"></ul>
-</body>
-</html>
+  <label>Issue Date:</label>
+  <input type="date" id="issueDate" required />
+
+  <label>Expiry Date:</label>
+  <input type="date" id="expiryDate" required />
+
+  <label>Upload File:</label>
+  <input type="file" id="file" name="file" required />
+  <button type="submit">Upload</button>
+</form>

@@ -1,37 +1,51 @@
-import { DriverService } from "../services/driver.service.js";
+// controllers/driver.controller.js
+import mongoose from "mongoose";
 
-// 🟢 Onboard a new Driver
-export const onboardDriver = async (req, res) => {
+const driverSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  phone: String,
+  licenseNumber: String,
+  assignedVehicle: { type: String, default: "" },
+  vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+});
+
+export const Driver = mongoose.model("Driver", driverSchema);
+
+/**
+ * Create a new driver (SubVendor level)
+ */
+export const createDriver = async (req, res) => {
   try {
-    const { name, licenseNo } = req.body;
-    const vendorId = req.user.id; // Automatically link driver to logged-in vendor
+    if (!req.user || !req.user.vendorId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-    const driverService = new DriverService({
+    const { name, phone, licenseNumber, assignedVehicle } = req.body;
+    if (!name) return res.status(400).json({ error: "Driver name required" });
+
+    const driver = await Driver.create({
       name,
-      licenseNo,
-      vendorId
+      phone,
+      licenseNumber,
+      assignedVehicle,
+      vendorId: req.user.vendorId,
     });
 
-    const newDriver = await driverService.onboardDriver();
-
-    res.status(201).json({
-      message: "Driver onboarded successfully ✅",
-      driver: newDriver
-    });
+    res.status(201).json({ message: "Driver added successfully", driver });
   } catch (err) {
-    console.error("❌ Error onboarding driver:", err);
+    console.error("createDriver error:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// 🟡 Get all Drivers for a Vendor
-export const getDriversByVendor = async (req, res) => {
+/**
+ * List all drivers under the vendor
+ */
+export const getMyDrivers = async (req, res) => {
   try {
-    const { vendorId } = req.params;
-    const drivers = await DriverService.getDriversByVendor(vendorId);
-    res.status(200).json(drivers);
+    const drivers = await Driver.find({ vendorId: req.user.vendorId }).lean();
+    res.json({ drivers });
   } catch (err) {
-    console.error("❌ Error fetching drivers:", err);
     res.status(500).json({ error: err.message });
   }
 };
