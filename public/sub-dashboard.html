@@ -1,107 +1,277 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>SubVendor Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    form { margin-bottom: 25px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-    input, select, button { margin: 8px 0; padding: 10px; width: 100%; }
-  </style>
-</head>
-<body>
-  <h2>SubVendor Dashboard</h2>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SubVendor Dashboard</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f7f9fb;
+        margin: 0;
+        padding: 20px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+      }
+      header h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+      header button {
+        background: white;
+        color: #007bff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      header button:hover {
+        background: #e4ecff;
+      }
 
-  <section>
-    <h3>Add Driver</h3>
-    <form id="driverForm">
-      <input type="text" id="driverName" placeholder="Driver Name" required />
-      <input type="text" id="driverPhone" placeholder="Phone Number" />
-      <input type="text" id="license" placeholder="License Number" />
-      <input type="text" id="vehicle" placeholder="Assigned Vehicle (optional)" />
-      <button type="submit">Add Driver</button>
-    </form>
-  </section>
+      section {
+        background: white;
+        padding: 20px;
+        margin-top: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        max-width: 800px;
+      }
 
-  <section>
-    <h3>Create Child SubVendor</h3>
-    <form id="childVendorForm">
-      <input type="text" id="childName" placeholder="SubVendor Name" required />
-      <input type="text" id="childContact" placeholder="Contact Info" required />
-      <input type="text" id="childUsername" placeholder="Username for subvendor login" required />
-      <label>Allowed Roles:</label>
-      <select id="childRole" required></select>
-      <input type="text" id="superVendorId" placeholder="SuperVendor ID" readonly required />
-      <button type="submit">Create SubVendor</button>
-    </form>
-  </section>
+      h3 {
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 6px;
+      }
 
-  <script>
-    const token = localStorage.getItem("token");
+      input,
+      select,
+      button {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
 
-    async function init() {
-      if (!token) return (window.location.href = "vendor-login.html");
+      button {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+      }
 
-      const meRes = await fetch("/api/vendors/me", {
-        headers: { Authorization: `Bearer ${token}` },
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2>SubVendor Dashboard</h2>
+      <button id="logoutBtn">Logout</button>
+    </header>
+
+    <section>
+      <h3>Add Driver</h3>
+      <form id="driverForm">
+        <input type="text" id="driverName" placeholder="Driver Name" required />
+        <input type="text" id="license" placeholder="License Number" required />
+        <input type="text" id="vehicle" placeholder="Assigned Vehicle (optional)" />
+        <input type="email" id="driverEmail" placeholder="Contact Email" required />
+        <button type="submit">Add Driver</button>
+      </form>
+    </section>
+
+    <section>
+      <h3>Your Drivers</h3>
+      <table id="driverTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>License</th>
+            <th>Email</th>
+            <th>Vehicle</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h3>Create Child SubVendor</h3>
+      <form id="childVendorForm">
+        <input type="text" id="childName" placeholder="SubVendor Name" required />
+        <input type="email" id="childContact" placeholder="Contact Email" required />
+        <input type="text" id="childUsername" placeholder="Username for SubVendor login" required />
+        <label>Allowed Roles:</label>
+        <select id="childRole" required></select>
+        <button type="submit">Create SubVendor</button>
+      </form>
+    </section>
+
+    <script>
+      // --- Token + Role Check ---
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+
+      if (!token || !role) {
+        alert("Please login first.");
+        window.location.href = "index.html";
+      }
+
+      if (role === "SuperVendor") {
+        alert("Access denied: You cannot access this page.");
+        window.location.href = "super-dashboard.html";
+      }
+
+      // --- Verify session ---
+      async function verifyLogin() {
+        try {
+          const res = await fetch("/api/vendors/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error("Session expired or invalid token");
+          const data = await res.json();
+          console.log("✅ Verified session for:", data.vendor?.name || "Unknown");
+        } catch (err) {
+          console.warn("❌ Token invalid:", err.message);
+          alert("Your session expired. Please log in again.");
+          localStorage.clear();
+          window.location.href = "index.html";
+        }
+      }
+
+      // --- Load Drivers ---
+      async function loadDrivers() {
+        const res = await fetch("/api/drivers/list", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const tbody = document.querySelector("#driverTable tbody");
+        tbody.innerHTML = "";
+
+        if (data.drivers && data.drivers.length > 0) {
+          data.drivers.forEach((d) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${d.name}</td>
+              <td>${d.licenseNumber}</td>
+              <td>${d.contactInfo}</td>
+              <td>${d.assignedVehicle || "-"}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No drivers found</td></tr>`;
+        }
+      }
+
+      // --- Initialize dashboard ---
+      async function init() {
+        await verifyLogin();
+        const meRes = await fetch("/api/vendors/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const me = await meRes.json();
+        if (!me.vendor) return alert("Unable to load vendor info");
+
+        const vendorRole = me.vendor.role;
+        const dropdown = document.getElementById("childRole");
+
+        const allowed = {
+          SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
+          RegionalVendor: ["CityVendor", "LocalVendor"],
+          CityVendor: ["LocalVendor"],
+          LocalVendor: [],
+        }[vendorRole] || [];
+
+        dropdown.innerHTML = allowed.length
+          ? allowed.map((r) => `<option value="${r}">${r}</option>`).join("")
+          : `<option disabled>No roles available</option>`;
+
+        loadDrivers();
+      }
+
+      // --- Form Handlers ---
+      document.getElementById("driverForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = driverName.value;
+        const licenseNumber = license.value;
+        const assignedVehicle = vehicle.value;
+        const contactInfo = driverEmail.value;
+
+        const res = await fetch("/api/drivers/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, licenseNumber, contactInfo, assignedVehicle }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Driver added successfully!");
+          loadDrivers();
+        } else {
+          alert(data.error);
+        }
       });
-      const me = await meRes.json();
-      if (!me.vendor) return alert("Unable to load vendor info");
 
-      document.getElementById("superVendorId").value = me.vendor.superVendorId;
+      document.getElementById("childVendorForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = childName.value;
+        const contactInfo = childContact.value;
+        const username = childUsername.value;
+        const role = childRole.value;
 
-      const role = me.vendor.role;
-      const dropdown = document.getElementById("childRole");
+        const res = await fetch("/api/vendors/create-subvendor", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, contactInfo, username, role }),
+        });
 
-      const allowed = {
-        SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
-        RegionalVendor: ["CityVendor", "LocalVendor"],
-        CityVendor: ["LocalVendor"],
-        LocalVendor: [],
-      }[role] || [];
-
-      dropdown.innerHTML = allowed.length
-        ? allowed.map(r => `<option value="${r}">${r}</option>`).join("")
-        : "<option disabled>No roles available</option>";
-    }
-
-    // add driver
-    document.getElementById("driverForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("driverName").value;
-      const phone = document.getElementById("driverPhone").value;
-      const licenseNumber = document.getElementById("license").value;
-      const assignedVehicle = document.getElementById("vehicle").value;
-
-      const res = await fetch("/api/drivers/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name, phone, licenseNumber, assignedVehicle }),
+        const data = await res.json();
+        alert(res.ok ? "SubVendor created successfully!" : data.error);
       });
 
-      const data = await res.json();
-      alert(res.ok ? "Driver added successfully!" : data.error || "Failed");
-    });
-
-    // create child subvendor
-    document.getElementById("childVendorForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("childName").value;
-      const contactInfo = document.getElementById("childContact").value;
-      const username = document.getElementById("childUsername").value;
-      const role = document.getElementById("childRole").value;
-      const superVendorId = document.getElementById("superVendorId").value;
-
-      const res = await fetch("/api/vendors/create-subvendor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name, contactInfo, username, role, superVendorId }),
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "index.html";
       });
-      const data = await res.json();
-      alert(res.ok ? "SubVendor created successfully!" : data.error);
-    });
 
-    init();
-  </script>
-</body>
+      init();
+    </script>
+  </body>
 </html>

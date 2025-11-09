@@ -1,107 +1,96 @@
-// controllers/vendor.controller.js
 import Vendor from "../models/vendor.model.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 
-/**
- * Utility to determine allowed child vendor types based on parent role
- */
-const allowedChildren = {
-  SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
-  RegionalVendor: ["CityVendor", "LocalVendor"],
-  CityVendor: ["LocalVendor"],
-  LocalVendor: [], // cannot create new
+// 🧩 Get current vendor details
+export const getMyVendor = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ userId: req.user.id })
+      .populate("parentVendorId", "name role")
+      .lean();
+
+    if (!vendor) {
+      console.warn("⚠️ No vendor found for user:", req.user.username);
+      return res.status(200).json({ vendor: null });
+    }
+
+    res.status(200).json({ vendor });
+  } catch (err) {
+    console.error("❌ getMyVendor error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-/**
- * Create subvendor (SuperVendor or SubVendor depending on hierarchy)
- */
+// 🧩 Create SubVendor
 export const createSubVendor = async (req, res) => {
   try {
-    if (!req.user || !req.user.role) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
+    const { name, contactInfo, username, role } = req.body;
     const parentRole = req.user.role;
-    const childAllowed = allowedChildren[parentRole] || [];
 
-    if (childAllowed.length === 0) {
-      return res.status(403).json({ error: `${parentRole} cannot create new subvendors.` });
-    }
+    const allowedRoles = {
+      SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
+      RegionalVendor: ["CityVendor", "LocalVendor"],
+      CityVendor: ["LocalVendor"],
+      LocalVendor: [],
+    };
 
-    const { name, contactInfo, role, username, superVendorId } = req.body;
-
-    if (!name || !username || !role || !superVendorId) {
-      return res.status(400).json({ error: "name, username, role, and superVendorId are required" });
-    }
-
-    // Validate allowed role creation
-    if (!childAllowed.includes(role)) {
-      return res.status(400).json({
-        error: `Invalid role assignment. ${parentRole} can only create: ${childAllowed.join(", ")}.`,
+    if (!allowedRoles[parentRole]?.includes(role)) {
+      return res.status(403).json({
+        error: `Invalid role assignment. ${parentRole} can only create: ${
+          allowedRoles[parentRole].join(", ") || "none"
+        }`,
       });
     }
 
-    const parentVendorObjectId = req.user.vendorId;
-    const normalizedUsername = username.toLowerCase();
+    const existing = await User.findOne({ username });
+    if (existing)
+      return res.status(400).json({ error: "Username already exists" });
 
-    const existingUser = await User.findOne({ username: normalizedUsername });
-    if (existingUser) return res.status(400).json({ error: "Username already exists" });
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    // Create vendor (no address now)
+    const newUser = await User.create({
+      username,
+      password: hashedPassword,
+      role,
+      isActive: false,
+    });
+
+    const parentVendor = await Vendor.findOne({ userId: req.user.id });
+
     const subVendor = await Vendor.create({
       name,
       contactInfo,
       role,
-      parentVendorId: parentVendorObjectId,
-      superVendorId,
-    });
-
-    const tempPassword = crypto.randomBytes(6).toString("hex");
-    const hashedTemp = await bcrypt.hash(tempPassword, 10);
-
-    const user = await User.create({
-      username: normalizedUsername,
-      password: hashedTemp,
-      role: "SubVendor",
-      vendorId: subVendor._id,
-      parentVendorId: parentVendorObjectId,
-      isActive: false,
+      parentVendorId: parentVendor ? parentVendor._id : null,
+      userId: newUser._id,
     });
 
     res.status(201).json({
-      message: `${role} created successfully. Activation required.`,
-      subVendor: { id: subVendor._id, name: subVendor.name, role: subVendor.role },
-      tempPasswordForDemo: tempPassword,
+      message: `${role} created successfully`,
+      subVendor,
+      tempPassword,
     });
   } catch (err) {
-    console.error("createSubVendor error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("❌ createSubVendor error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-/**
- * List all direct child vendors
- */
+// 🧩 Get subvendors
 export const getSubVendors = async (req, res) => {
   try {
-    const parentId = req.user.vendorId;
-    const vendors = await Vendor.find({ parentVendorId: parentId }).lean();
-    res.json({ vendors });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+    if (!vendor)
+      return res.status(404).json({ error: "Vendor not found" });
 
-/**
- * Get current vendor info (for role + superVendorId)
- */
-export const getMyVendor = async (req, res) => {
-  try {
-    const vendor = await Vendor.findById(req.user.vendorId).lean();
-    res.json({ vendor });
+    const subVendors = await Vendor.find({ parentVendorId: vendor._id })
+      .select("name contactInfo role")
+      .lean();
+
+    res.status(200).json({ vendors: subVendors });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ getSubVendors error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

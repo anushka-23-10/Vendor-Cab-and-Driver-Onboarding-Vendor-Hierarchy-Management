@@ -1,17 +1,31 @@
-// routes/vendor.routes.js
 import express from "express";
-import { createSubVendor, getSubVendors, getMyVendor } from "../controllers/vendor.controller.js";
-import authenticate from "../middleware/auth.middleware.js"; // make sure this file exists and exports default
+import {
+  createSubVendor,
+  getSubVendors,
+  getMyVendor,
+} from "../controllers/vendor.controller.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
-// create subvendor (only SuperVendor)
-router.post("/create-subvendor", authenticate, createSubVendor);
+// ✅ Only these roles can create subvendors
+router.post(
+  "/create-subvendor",
+  authenticate,
+  authorize(["SuperVendor", "RegionalVendor", "CityVendor"]),
+  createSubVendor
+);
 
-// list direct subvendors under the logged-in super vendor
-router.get("/my-subvendors", authenticate, getSubVendors);
+// ✅ Only Super/Regional/City vendors can view their subvendors
+router.get(
+  "/my-subvendors",
+  authenticate,
+  authorize(["SuperVendor", "RegionalVendor", "CityVendor"]),
+  getSubVendors
+);
 
-// get current vendor record (useful for pre-filling superVendorId)
+// ✅ All vendors can fetch their info
 router.get("/me", authenticate, getMyVendor);
 
 export default router;

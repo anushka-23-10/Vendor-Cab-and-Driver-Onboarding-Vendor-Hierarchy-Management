@@ -1,11 +1,12 @@
-// routes/auth.routes.js
 import express from "express";
-import { register, login, activateAccount } from "../controllers/auth.controller.js";
+import { register, login } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
-router.post("/register", register); // only for SuperVendor
+// 🟢 Register SuperVendor
+router.post("/register", register);
+
+// 🟡 Login (SuperVendor or SubVendor)
 router.post("/login", login);
-router.post("/activate", activateAccount);
 
 export default router;
