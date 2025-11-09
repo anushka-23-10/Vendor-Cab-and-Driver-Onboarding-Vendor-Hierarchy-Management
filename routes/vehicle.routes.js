@@ -1,27 +1,12 @@
 import express from "express";
-import Vehicle from "../models/vehicle.model.js";
-import { authenticate } from "../config/auth.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/role.middleware.js";
+import { addVehicle, assignDriver, getVehicles } from "../controllers/vehicle.controller.js";
 
 const router = express.Router();
 
-// 🟢 Create a new vehicle
-router.post("/create", authenticate, async (req, res) => {
-  try {
-    const vehicle = await Vehicle.create(req.body);
-    res.status(201).json({ message: "Vehicle created successfully", vehicle });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 🟡 Get all vehicles
-router.get("/", authenticate, async (req, res) => {
-  try {
-    const vehicles = await Vehicle.find();
-    res.json(vehicles);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post("/add", authenticate, authorize(["SuperVendor", "RegionalVendor", "CityVendor", "LocalVendor"]), addVehicle);
+router.post("/assign-driver", authenticate, authorize(["SuperVendor", "RegionalVendor", "CityVendor", "LocalVendor"]), assignDriver);
+router.get("/my", authenticate, authorize(["SuperVendor", "RegionalVendor", "CityVendor", "LocalVendor"]), getVehicles);
 
 export default router;
