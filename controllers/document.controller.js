@@ -1,18 +1,12 @@
-import multer from "multer";
-import Document from "../models/document.model.js";
+import { DocumentService } from "../services/document.service.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
-export const upload = multer({ storage });
-
+// Upload a document for a driver or vehicle
 export const uploadDocument = async (req, res) => {
   try {
     const { type, issueDate, expiryDate, ownerType, ownerId } = req.body;
-    const filePath = req.file.path;
+    const filePath = req.file ? req.file.path : null; // for uploaded files
 
-    const doc = await Document.create({
+    const docService = new DocumentService({
       type,
       issueDate,
       expiryDate,
@@ -21,16 +15,19 @@ export const uploadDocument = async (req, res) => {
       filePath,
     });
 
-    res.status(201).json({ message: "Document uploaded", doc });
+    const newDoc = await docService.upload();
+    res.status(201).json({ message: "Document uploaded successfully ✅", document: newDoc });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-export const getDocuments = async (req, res) => {
+// Get documents for a specific driver/vehicle
+export const getDocumentsByOwner = async (req, res) => {
   try {
-    const docs = await Document.find({ ownerId: req.params.ownerId });
-    res.json(docs);
+    const { ownerId } = req.params;
+    const docs = await DocumentService.getDocsByOwner(ownerId);
+    res.status(200).json(docs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

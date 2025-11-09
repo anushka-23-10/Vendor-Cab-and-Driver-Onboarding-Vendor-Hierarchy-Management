@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Super Vendor Dashboard</title>
+  <script defer src="super.js"></script>
+</head>
+<body>
+  <h2>Welcome SuperVendor</h2>
+  <button onclick="logout()">Logout</button>
+
+  <h3>Create SubVendor</h3>
+  <form id="subVendorForm">
+    <input type="text" id="name" placeholder="SubVendor Name" required />
+    <input type="text" id="category" placeholder="Category (Local/Regional)" required />
+    <input type="text" id="location" placeholder="Location" required />
+    <button type="submit">Create SubVendor</button>
+  </form>
+
+  <h3>SubVendor List</h3>
+  <ul id="subVendorList"></ul>
+</body>
+</html>
