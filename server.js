@@ -8,6 +8,7 @@ import vendorRoutes from "./routes/vendor.routes.js";
 import driverRoutes from "./routes/driver.routes.js";
 import vehicleRoutes from "./routes/vehicle.routes.js";
 import documentRoutes from "./routes/document.routes.js";
+import { checkExpiredDocuments } from "./controllers/document.controller.js";
 import path from "path";
 
 dotenv.config();
@@ -41,3 +42,6 @@ app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/api/drivers", driverRoutes);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+// Check for expired documents every hour
+setInterval(checkExpiredDocuments, 3600 * 1000);

@@ -7,9 +7,13 @@ import {
   getMyDocuments,
   verifyDocument,
 } from "../controllers/document.controller.js";
+import { getAllDocuments } from "../controllers/document.controller.js";
+import { getComplianceSummary } from "../controllers/document.controller.js";
 
 const router = express.Router();
 
+router.get("/all", authenticate, getAllDocuments);
+router.get("/summary", authenticate, getComplianceSummary);
 // ✅ Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),

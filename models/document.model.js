@@ -9,9 +9,9 @@ const documentSchema = new mongoose.Schema({
     required: true,
   },
   filePath: { type: String, required: true },
-  status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
+  status: { type: String, enum: ["Pending", "Approved", "Rejected", "Expired"], default: "Pending" },
   uploadDate: { type: Date, default: Date.now },
-  expiryDate: { type: Date }, // optional for future compliance
+  expiryDate: { type: Date }, // optional for compliance tracking
 });
 
 export default mongoose.model("Document", documentSchema);

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Compliance Dashboard | SuperVendor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f7f9fb;
+        margin: 0;
+        padding: 20px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+      }
+
+      header h2 {
+        margin: 0;
+      }
+
+      header button {
+        background: white;
+        color: #007bff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      header button:hover {
+        background: #e4ecff;
+      }
+
+      section {
+        background: white;
+        padding: 20px;
+        margin-top: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      select,
+      button {
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin: 5px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .status {
+        font-weight: bold;
+      }
+
+      .green {
+        color: green;
+      }
+
+      .red {
+        color: red;
+      }
+
+      .orange {
+        color: orange;
+      }
+
+      .action-btn {
+        border: none;
+        padding: 5px 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      .approve {
+        background: #28a745;
+        color: white;
+      }
+
+      .reject {
+        background: #dc3545;
+        color: white;
+      }
+
+      .approve:hover {
+        background: #218838;
+      }
+
+      .reject:hover {
+        background: #c82333;
+      }
+
+      canvas {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2>Compliance Dashboard</h2>
+      <div>
+        <button onclick="window.location.href='super-dashboard.html'">
+          ⬅ Back
+        </button>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <section>
+      <h3>Fleet Compliance Overview</h3>
+
+      <div
+        id="summaryBox"
+        style="
+          background: #eef3ff;
+          padding: 10px;
+          border-radius: 8px;
+          margin-bottom: 10px;
+        "
+      >
+        <b>Total Documents:</b> <span id="totalDocs">0</span> |
+        ✅ <b>Approved:</b> <span id="approvedDocs">0</span> |
+        🕒 <b>Pending:</b> <span id="pendingDocs">0</span> |
+        ❌ <b>Rejected:</b> <span id="rejectedDocs">0</span> |
+        ⚠️ <b>Expired:</b> <span id="expiredDocs">0</span> |
+        📈 <b>Compliance Rate:</b> <span id="rate">0%</span>
+      </div>
+
+      <canvas id="complianceChart" style="max-width: 600px"></canvas>
+    </section>
+
+    <section>
+      <h3>Uploaded Driver Documents</h3>
+
+      <label for="filterSelect"><b>Filter by Status:</b></label>
+      <select id="filterSelect">
+        <option value="All">All</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+        <option value="Expired">Expired</option>
+      </select>
+
+      <table id="docTable">
+        <thead>
+          <tr>
+            <th>Vendor</th>
+            <th>Driver</th>
+            <th>Document Type</th>
+            <th>Upload Date</th>
+            <th>Status</th>
+            <th>View</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <script>
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+
+      if (!token || role !== "SuperVendor") {
+        alert("Unauthorized access. Please log in as SuperVendor.");
+        window.location.href = "index.html";
+      }
+
+      let chart;
+
+      async function loadSummary() {
+        const res = await fetch("/api/documents/summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) return;
+
+        document.getElementById("totalDocs").innerText = data.totalDocs;
+        document.getElementById("approvedDocs").innerText = data.approved;
+        document.getElementById("pendingDocs").innerText = data.pending;
+        document.getElementById("rejectedDocs").innerText = data.rejected;
+        document.getElementById("expiredDocs").innerText = data.expired;
+        document.getElementById("rate").innerText = `${data.complianceRate}%`;
+
+        const ctx = document.getElementById("complianceChart").getContext("2d");
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: ["Approved", "Pending", "Rejected", "Expired"],
+            datasets: [
+              {
+                data: [
+                  data.approved,
+                  data.pending,
+                  data.rejected,
+                  data.expired,
+                ],
+                backgroundColor: [
+                  "#28a745",
+                  "#ffc107",
+                  "#dc3545",
+                  "#6c757d",
+                ],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "bottom" },
+              title: {
+                display: true,
+                text: `Overall Compliance Rate: ${data.complianceRate}%`,
+              },
+            },
+          },
+        });
+      }
+
+      // Load all documents
+      async function loadDocuments(filter = "All") {
+        const res = await fetch("/api/documents/all", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        const tbody = document.querySelector("#docTable tbody");
+        tbody.innerHTML = "";
+
+        let docs = data.documents || [];
+        if (filter !== "All") {
+          docs = docs.filter((d) => d.status === filter);
+        }
+
+        if (docs.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" style="text-align:center;">No documents found</td></tr>';
+          return;
+        }
+
+        docs.forEach((d) => {
+          const tr = document.createElement("tr");
+
+          let color =
+            d.status === "Approved"
+              ? "green"
+              : d.status === "Rejected"
+              ? "red"
+              : d.status === "Expired"
+              ? "gray"
+              : "orange";
+
+          tr.innerHTML = `
+            <td>${d.vendorId?.name || "Unknown"}</td>
+            <td>${d.driverId?.name || "-"}</td>
+            <td>${d.docType}</td>
+            <td>${new Date(d.uploadDate).toLocaleDateString()}</td>
+            <td class="status ${color}">${d.status}</td>
+            <td><a href="${d.filePath}" target="_blank">📄 View</a></td>
+            <td>
+              ${
+                d.status === "Pending"
+                  ? `
+                    <button class="action-btn approve" onclick="verifyDoc('${d._id}', 'Approved')">Approve</button>
+                    <button class="action-btn reject" onclick="verifyDoc('${d._id}', 'Rejected')">Reject</button>
+                  `
+                  : "-"
+              }
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Verify document (Approve/Reject)
+      async function verifyDoc(id, status) {
+        const res = await fetch("/api/documents/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ docId: id, status }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.message);
+          loadSummary();
+          loadDocuments(document.getElementById("filterSelect").value);
+        } else {
+          alert(data.error);
+        }
+      }
+
+      // Event listeners
+      document
+        .getElementById("filterSelect")
+        .addEventListener("change", (e) => loadDocuments(e.target.value));
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "index.html";
+      });
+
+      loadSummary();
+      loadDocuments();
+    </script>
+  </body>
+</html>

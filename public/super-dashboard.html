@@ -96,7 +96,10 @@
   <body>
     <header>
       <h2>SuperVendor Dashboard</h2>
-      <button id="logoutBtn">Logout</button>
+      <div>
+        <button id="complianceBtn">📄 Compliance</button>
+        <button id="logoutBtn">Logout</button>
+      </div>
     </header>
 
     <!-- 🧠 Vendor Info -->
@@ -304,6 +307,9 @@
         await loadVendorInfo();
         await loadSubVendors();
       }
+      document.getElementById("complianceBtn").addEventListener("click", () => {
+        window.location.href = "super-compliance.html";
+      });
 
       init();
     </script>

@@ -5,7 +5,7 @@ import Vendor from "../models/vendor.model.js";
 // 🟢 Upload document
 export const uploadDocument = async (req, res) => {
   try {
-    const { driverId, docType } = req.body;
+    const { driverId, docType, expiryDate } = req.body;
     const file = req.file;
 
     if (!driverId || !docType || !file)
@@ -25,6 +25,7 @@ export const uploadDocument = async (req, res) => {
       vendorId: req.user.id,
       docType,
       filePath: `/uploads/${file.filename}`,
+      expiryDate: expiryDate ? new Date(expiryDate) : null,
     });
 
     res.status(201).json({ message: "Document uploaded successfully", doc });
@@ -65,6 +66,66 @@ export const verifyDocument = async (req, res) => {
     res.json({ message: `Document ${status.toLowerCase()} successfully` });
   } catch (err) {
     console.error("❌ verifyDocument:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// 🧾 Fetch all documents for SuperVendor (includes vendor & driver)
+export const getAllDocuments = async (req, res) => {
+  try {
+    if (req.user.role !== "SuperVendor")
+      return res.status(403).json({ error: "Access denied" });
+
+    const documents = await Document.find()
+      .populate("vendorId", "name region")
+      .populate("driverId", "name licenseNumber");
+
+    res.json({ documents });
+  } catch (err) {
+    console.error("❌ getAllDocuments:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// 🕓 Auto-update expired documents
+export const checkExpiredDocuments = async () => {
+  try {
+    const now = new Date();
+    const result = await Document.updateMany(
+      { expiryDate: { $lt: now }, status: { $ne: "Expired" } },
+      { $set: { status: "Expired" } }
+    );
+    if (result.modifiedCount > 0)
+      console.log(`⚠️ ${result.modifiedCount} documents marked as expired`);
+  } catch (err) {
+    console.error("❌ Expiry check failed:", err.message);
+  }
+};
+// 📊 Get Compliance Summary
+export const getComplianceSummary = async (req, res) => {
+  try {
+    if (req.user.role !== "SuperVendor")
+      return res.status(403).json({ error: "Access denied" });
+
+    const totalDocs = await Document.countDocuments();
+    const approved = await Document.countDocuments({ status: "Approved" });
+    const pending = await Document.countDocuments({ status: "Pending" });
+    const rejected = await Document.countDocuments({ status: "Rejected" });
+    const expired = await Document.countDocuments({ status: "Expired" });
+
+    const complianceRate = totalDocs
+      ? ((approved / totalDocs) * 100).toFixed(1)
+      : 0;
+
+    res.json({
+      totalDocs,
+      approved,
+      pending,
+      rejected,
+      expired,
+      complianceRate,
+    });
+  } catch (err) {
     res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -120,7 +120,12 @@
       <form id="driverForm">
         <input type="text" id="driverName" placeholder="Driver Name" required />
         <input type="text" id="license" placeholder="License Number" required />
-        <input type="email" id="driverEmail" placeholder="Contact Email" required />
+        <input
+          type="email"
+          id="driverEmail"
+          placeholder="Contact Email"
+          required
+        />
         <button type="submit">Add Driver</button>
       </form>
 
@@ -141,9 +146,19 @@
     <section>
       <h3>Vehicle Management</h3>
       <form id="vehicleForm">
-        <input type="text" id="regNumber" placeholder="Registration Number" required />
+        <input
+          type="text"
+          id="regNumber"
+          placeholder="Registration Number"
+          required
+        />
         <input type="text" id="model" placeholder="Vehicle Model" required />
-        <input type="number" id="seating" placeholder="Seating Capacity" required />
+        <input
+          type="number"
+          id="seating"
+          placeholder="Seating Capacity"
+          required
+        />
         <select id="fuelType" required>
           <option value="">Select Fuel Type</option>
           <option>Petrol</option>
@@ -196,6 +211,7 @@
             <th>Type</th>
             <th>Date</th>
             <th>Status</th>
+            <th>View</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -206,10 +222,30 @@
     <section>
       <h3>Create Child SubVendor</h3>
       <form id="childVendorForm">
-        <input type="text" id="childName" placeholder="SubVendor Name" required />
-        <input type="email" id="childContact" placeholder="Contact Email" required />
-        <input type="text" id="childUsername" placeholder="Username for SubVendor login" required />
-        <input type="text" id="childRegion" placeholder="Region / Area" required />
+        <input
+          type="text"
+          id="childName"
+          placeholder="SubVendor Name"
+          required
+        />
+        <input
+          type="email"
+          id="childContact"
+          placeholder="Contact Email"
+          required
+        />
+        <input
+          type="text"
+          id="childUsername"
+          placeholder="Username for SubVendor login"
+          required
+        />
+        <input
+          type="text"
+          id="childRegion"
+          placeholder="Region / Area"
+          required
+        />
         <label>Allowed Roles:</label>
         <select id="childRole" required></select>
         <button type="submit">Create SubVendor</button>
@@ -246,7 +282,8 @@
         if (res.ok) {
           document.getElementById("vendorName").innerText = data.vendor.name;
           document.getElementById("vendorRole").innerText = data.vendor.role;
-          document.getElementById("vendorRegion").innerText = data.vendor.region || "N/A";
+          document.getElementById("vendorRegion").innerText =
+            data.vendor.region || "N/A";
           setupRolePermissions(data.vendor.role);
           loadDrivers();
           loadVehicles();
@@ -263,12 +300,13 @@
       // Role-based subvendor options
       function setupRolePermissions(role) {
         const dropdown = document.getElementById("childRole");
-        const allowed = {
-          SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
-          RegionalVendor: ["CityVendor", "LocalVendor"],
-          CityVendor: ["LocalVendor"],
-          LocalVendor: [],
-        }[role] || [];
+        const allowed =
+          {
+            SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
+            RegionalVendor: ["CityVendor", "LocalVendor"],
+            CityVendor: ["LocalVendor"],
+            LocalVendor: [],
+          }[role] || [];
         dropdown.innerHTML = allowed.length
           ? allowed.map((r) => `<option value="${r}">${r}</option>`).join("")
           : `<option disabled>No roles available</option>`;
@@ -289,26 +327,28 @@
         });
       }
 
-      document.getElementById("driverForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const body = {
-          name: driverName.value,
-          licenseNumber: license.value,
-          contactInfo: driverEmail.value,
-        };
-        const res = await fetch("/api/drivers/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
+      document
+        .getElementById("driverForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const body = {
+            name: driverName.value,
+            licenseNumber: license.value,
+            contactInfo: driverEmail.value,
+          };
+          const res = await fetch("/api/drivers/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          alert(res.ok ? "Driver added!" : data.error);
+          loadDrivers();
+          loadDriversForDocs();
         });
-        const data = await res.json();
-        alert(res.ok ? "Driver added!" : data.error);
-        loadDrivers();
-        loadDriversForDocs();
-      });
 
       // Vehicles
       async function loadVehicles() {
@@ -330,26 +370,28 @@
         });
       }
 
-      document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const body = {
-          registrationNumber: regNumber.value,
-          model: model.value,
-          seatingCapacity: seating.value,
-          fuelType: fuelType.value,
-        };
-        const res = await fetch("/api/vehicles/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
+      document
+        .getElementById("vehicleForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const body = {
+            registrationNumber: regNumber.value,
+            model: model.value,
+            seatingCapacity: seating.value,
+            fuelType: fuelType.value,
+          };
+          const res = await fetch("/api/vehicles/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          alert(res.ok ? "Vehicle added!" : data.error);
+          loadVehicles();
         });
-        const data = await res.json();
-        alert(res.ok ? "Vehicle added!" : data.error);
-        loadVehicles();
-      });
 
       // Driver documents
       async function loadDriversForDocs() {
@@ -367,23 +409,25 @@
         });
       }
 
-      document.getElementById("docForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append("driverId", driverSelect.value);
-        formData.append("docType", docType.value);
-        formData.append("file", fileInput.files[0]);
+      document
+        .getElementById("docForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append("driverId", driverSelect.value);
+          formData.append("docType", docType.value);
+          formData.append("file", fileInput.files[0]);
 
-        const res = await fetch("/api/documents/upload", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
+          const res = await fetch("/api/documents/upload", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          });
+
+          const data = await res.json();
+          alert(res.ok ? "Document uploaded!" : data.error);
+          loadDocuments();
         });
-
-        const data = await res.json();
-        alert(res.ok ? "Document uploaded!" : data.error);
-        loadDocuments();
-      });
 
       async function loadDocuments() {
         const res = await fetch("/api/documents/my", {
@@ -392,13 +436,30 @@
         const data = await res.json();
         const tbody = document.querySelector("#docTable tbody");
         tbody.innerHTML = "";
-        data.documents?.forEach((d) => {
+
+        if (!data.documents || data.documents.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No documents uploaded</td></tr>`;
+          return;
+        }
+
+        data.documents.forEach((d) => {
           const tr = document.createElement("tr");
+
+          // Color-coded status
+          let color =
+            d.status === "Approved"
+              ? "green"
+              : d.status === "Rejected"
+              ? "red"
+              : "orange";
+
           tr.innerHTML = `
-            <td>${d.driverId?.name || "-"}</td>
-            <td>${d.docType}</td>
-            <td>${new Date(d.uploadDate).toLocaleDateString()}</td>
-            <td>${d.status}</td>`;
+      <td>${d.driverId?.name || "-"}</td>
+      <td>${d.docType}</td>
+      <td>${new Date(d.uploadDate).toLocaleDateString()}</td>
+      <td style="color:${color};font-weight:bold;">${d.status}</td>
+      <td><a href="${d.filePath}" target="_blank">📄 View</a></td>
+    `;
           tbody.appendChild(tr);
         });
       }
@@ -418,27 +479,29 @@
         });
       }
 
-      document.getElementById("childVendorForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const body = {
-          name: childName.value,
-          contactInfo: childContact.value,
-          username: childUsername.value,
-          role: childRole.value,
-          region: childRegion.value,
-        };
-        const res = await fetch("/api/vendors/create-subvendor", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
+      document
+        .getElementById("childVendorForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const body = {
+            name: childName.value,
+            contactInfo: childContact.value,
+            username: childUsername.value,
+            role: childRole.value,
+            region: childRegion.value,
+          };
+          const res = await fetch("/api/vendors/create-subvendor", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          alert(res.ok ? "SubVendor created successfully!" : data.error);
+          loadChildVendors();
         });
-        const data = await res.json();
-        alert(res.ok ? "SubVendor created successfully!" : data.error);
-        loadChildVendors();
-      });
 
       document.getElementById("logoutBtn").addEventListener("click", () => {
         localStorage.clear();
