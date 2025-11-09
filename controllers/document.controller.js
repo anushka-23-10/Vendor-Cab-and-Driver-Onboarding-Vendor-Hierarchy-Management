@@ -38,16 +38,42 @@ export const uploadDocument = async (req, res) => {
 // 📋 List documents for this vendor
 export const getMyDocuments = async (req, res) => {
   try {
-    const documents = await Document.find({ vendorId: req.user.id })
+    const vendorId = req.user.id;
+    const docs = await Document.find({ vendorId })
       .populate("driverId", "name")
       .sort({ uploadDate: -1 });
 
-    res.json({ documents });
+    // ⚡ Auto-mark expired docs dynamically
+    const today = new Date();
+    const updates = [];
+
+    docs.forEach((d) => {
+      if (d.expiryDate && new Date(d.expiryDate) < today && d.status !== "Expired") {
+        d.status = "Expired";
+        updates.push(
+          Document.updateOne({ _id: d._id }, { $set: { status: "Expired" } })
+        );
+      }
+    });
+    if (updates.length) await Promise.all(updates);
+
+    res.json({ documents: docs });
   } catch (err) {
-    console.error("❌ getMyDocuments:", err);
+    console.error("❌ getMyDocuments:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// --- Optional Daily Cron Job (if you want scheduled updates) ---
+export const autoExpireDocuments = async () => {
+  const today = new Date();
+  await Document.updateMany(
+    { expiryDate: { $lt: today }, status: { $ne: "Expired" } },
+    { $set: { status: "Expired" } }
+  );
+  console.log("✅ Auto-expired old documents");
+};
+
 
 // 🟠 For SuperVendor — approve/reject document
 export const verifyDocument = async (req, res) => {
