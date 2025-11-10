@@ -1,22 +1,16 @@
 import express from "express";
 import multer from "multer";
-import path from "path";
 import { authenticate } from "../middleware/auth.middleware.js";
 import {
   uploadDocument,
   getMyDocuments,
-  verifyDocument,
 } from "../controllers/document.controller.js";
-import { getAllDocuments } from "../controllers/document.controller.js";
-import { getComplianceSummary } from "../controllers/document.controller.js";
 
 const router = express.Router();
 
-router.get("/all", authenticate, getAllDocuments);
-router.get("/summary", authenticate, getComplianceSummary);
-// ✅ Configure multer for file uploads
+// 🗂 Multer config
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, "uploads/documents/"),
   filename: (req, file, cb) =>
     cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, "_")),
 });
@@ -25,10 +19,7 @@ const upload = multer({ storage });
 // 📤 Upload document
 router.post("/upload", authenticate, upload.single("file"), uploadDocument);
 
-// 📋 Get documents of current vendor
-router.get("/my", authenticate, getMyDocuments);
-
-// 🧾 Approve/reject (SuperVendor only)
-router.post("/verify", authenticate, verifyDocument);
+// 📋 Get all documents for current vendor
+router.get("/list", authenticate, getMyDocuments);
 
 export default router;

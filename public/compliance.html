@@ -1,267 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Compliance Tracking</title>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f7f9fb;
-      margin: 0;
-      padding: 20px;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-    }
-
-    section {
-      background: white;
-      margin-top: 30px;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    h3 {
-      color: #007bff;
-      border-bottom: 2px solid #007bff;
-      padding-bottom: 6px;
-    }
-
-    input,
-    select,
-    button {
-      display: block;
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    button {
-      background: #007bff;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th,
-    td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-
-    th {
-      background-color: #007bff;
-      color: white;
-    }
-
-    .success {
-      color: green;
-      font-weight: bold;
-    }
-
-    .error {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-  <header>
-    <h2>📋 Compliance Dashboard</h2>
-    <button id="backBtn">← Back to Dashboard</button>
-  </header>
-
-  <section>
-    <h3>Upload Compliance Documents</h3>
-    <form id="uploadForm" enctype="multipart/form-data">
-      <select id="ownerType" required>
-        <option value="">Select Owner Type</option>
-        <option value="Driver">Driver</option>
-        <option value="Vehicle">Vehicle</option>
-      </select>
-
-      <select id="ownerSelect" required>
-        <option value="">Select Owner</option>
-      </select>
-
-      <select id="docType" required>
-        <option value="">Select Document Type</option>
-        <option value="License">Driver License</option>
-        <option value="Registration">Vehicle RC</option>
-        <option value="Insurance">Insurance</option>
-        <option value="Pollution">Pollution Certificate</option>
-        <option value="Permit">Permit</option>
-      </select>
-
-      <input type="date" id="issueDate" placeholder="Issue Date" required />
-      <input type="date" id="expiryDate" placeholder="Expiry Date" required />
-      <input type="file" id="file" required />
-
-      <button type="submit">Upload Document</button>
-      <p id="msg"></p>
-    </form>
-  </section>
-
-  <section>
-    <h3>📂 Uploaded Documents</h3>
-    <table id="docsTable">
-      <thead>
-        <tr>
-          <th>Owner</th>
-          <th>Type</th>
-          <th>Issue Date</th>
-          <th>Expiry Date</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="5" style="text-align:center;">No documents uploaded yet</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <script>
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Unauthorized access");
-      window.location.href = "index.html";
-    }
-
-    // Load drivers or vehicles depending on owner type
-    async function loadOwners() {
-      const ownerType = document.getElementById("ownerType").value;
-      const select = document.getElementById("ownerSelect");
-      select.innerHTML = '<option value="">Select Owner</option>';
-
-      if (!ownerType) return;
-
-      try {
-        let res, data;
-        if (ownerType === "Driver") {
-          res = await fetch("/api/drivers/list", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          data = await res.json();
-          if (data.drivers?.length) {
-            data.drivers.forEach((d) => {
-              select.innerHTML += `<option value="${d._id}">${d.name}</option>`;
-            });
-          }
-        } else {
-          res = await fetch("/api/vehicles/my", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          data = await res.json();
-          if (data.vehicles?.length) {
-            data.vehicles.forEach((v) => {
-              select.innerHTML += `<option value="${v._id}">${v.registrationNumber}</option>`;
-            });
-          }
-        }
-      } catch (err) {
-        console.error("❌ loadOwners Error:", err);
+  <head>
+    <meta charset="UTF-8" />
+    <title>Compliance Dashboard</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f7f9fb;
+        margin: 0;
+        padding: 20px;
       }
-    }
 
-    // Upload document
-    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const msg = document.getElementById("msg");
-      msg.textContent = "Uploading...";
-      msg.className = "";
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+      }
 
-      try {
+      section {
+        background: white;
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      h3 {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 6px;
+      }
+
+      input,
+      select {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .success {
+        color: green;
+        font-weight: bold;
+      }
+
+      .error {
+        color: red;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2>📋 Compliance Dashboard</h2>
+      <button id="backBtn">← Back to Dashboard</button>
+    </header>
+
+    <!-- Upload Section -->
+    <section>
+      <h3>Upload New Document</h3>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <label for="ownerType">Owner Type:</label>
+        <select id="ownerType" required>
+          <option value="">-- Select Owner Type --</option>
+          <option value="Driver">Driver</option>
+          <option value="Vehicle">Vehicle</option>
+        </select>
+
+        <label for="ownerId">Select Owner:</label>
+        <select id="ownerId" required>
+          <option value="">-- Select Owner --</option>
+        </select>
+
+        <label for="type">Document Type:</label>
+        <select id="type" required>
+          <option value="">-- Select Document Type --</option>
+          <option value="License">License</option>
+          <option value="RC">Registration Certificate</option>
+          <option value="Permit">Permit</option>
+          <option value="Pollution">Pollution Certificate</option>
+          <option value="Insurance">Insurance</option>
+        </select>
+
+        <label for="issueDate">Issue Date:</label>
+        <input type="date" id="issueDate" />
+
+        <label for="expiryDate">Expiry Date:</label>
+        <input type="date" id="expiryDate" />
+
+        <label for="file">Choose File:</label>
+        <input type="file" id="file" accept=".pdf,.jpg,.png" required />
+
+        <button type="submit">Upload Document</button>
+        <p id="msg"></p>
+      </form>
+    </section>
+
+    <!-- Document Table -->
+    <section>
+      <h3>Uploaded Documents</h3>
+      <table id="docTable">
+        <thead>
+          <tr>
+            <th>Owner Type</th>
+            <th>Owner</th>
+            <th>Type</th>
+            <th>Issue Date</th>
+            <th>Expiry Date</th>
+            <th>Status</th>
+            <th>File</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Unauthorized access");
+        window.location.href = "index.html";
+      }
+
+      document.getElementById("backBtn").addEventListener("click", () => {
+        window.location.href = "sub-dashboard.html";
+      });
+
+      const ownerTypeSelect = document.getElementById("ownerType");
+      const ownerIdSelect = document.getElementById("ownerId");
+
+      // 🧩 Load dropdowns dynamically
+      ownerTypeSelect.addEventListener("change", () => {
+        const type = ownerTypeSelect.value;
+        ownerIdSelect.innerHTML = '<option value="">Loading...</option>';
+        if (type === "Driver") loadDrivers();
+        else if (type === "Vehicle") loadVehicles();
+        else ownerIdSelect.innerHTML = '<option value="">-- Select Owner --</option>';
+      });
+
+      async function loadDrivers() {
+        try {
+          const res = await fetch("/api/drivers/list", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          const drivers = data.drivers || [];
+          if (!drivers.length) {
+            ownerIdSelect.innerHTML = '<option value="">No drivers found</option>';
+            return;
+          }
+          ownerIdSelect.innerHTML = drivers
+            .map((d) => `<option value="${d._id}">${d.name} (${d.licenseNumber})</option>`)
+            .join("");
+        } catch (err) {
+          console.error("❌ loadDrivers Error:", err);
+          ownerIdSelect.innerHTML = '<option value="">Error loading drivers</option>';
+        }
+      }
+
+      async function loadVehicles() {
+        try {
+          const res = await fetch("/api/vehicles/my", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          const vehicles = data.vehicles || [];
+          if (!vehicles.length) {
+            ownerIdSelect.innerHTML = '<option value="">No vehicles found</option>';
+            return;
+          }
+          ownerIdSelect.innerHTML = vehicles
+            .map((v) => `<option value="${v._id}">${v.registrationNumber} (${v.model})</option>`)
+            .join("");
+        } catch (err) {
+          console.error("❌ loadVehicles Error:", err);
+          ownerIdSelect.innerHTML = '<option value="">Error loading vehicles</option>';
+        }
+      }
+
+      // 📤 Upload document
+      document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("msg");
+        msg.textContent = "Uploading...";
+        msg.className = "";
+
         const formData = new FormData();
         formData.append("file", document.getElementById("file").files[0]);
-        formData.append("ownerId", document.getElementById("ownerSelect").value);
+        formData.append("ownerId", document.getElementById("ownerId").value);
         formData.append("ownerType", document.getElementById("ownerType").value);
-        formData.append("type", document.getElementById("docType").value);
+        formData.append("type", document.getElementById("type").value);
         formData.append("issueDate", document.getElementById("issueDate").value);
         formData.append("expiryDate", document.getElementById("expiryDate").value);
 
-        const res = await fetch("/api/documents/upload", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Upload failed");
-        msg.textContent = "✅ Document uploaded successfully!";
-        msg.className = "success";
-        e.target.reset();
-        loadDocuments();
-      } catch (err) {
-        msg.textContent = "❌ " + err.message;
-        msg.className = "error";
-      }
-    });
-
-    // Load all uploaded docs
-    async function loadDocuments() {
-      try {
-        const res = await fetch("/api/documents/list", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        const tbody = document.querySelector("#docsTable tbody");
-        tbody.innerHTML = "";
-
-        if (!data.documents?.length) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No documents uploaded</td></tr>`;
-          return;
+        try {
+          const res = await fetch("/api/documents/upload", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Upload failed");
+          msg.textContent = "✅ Document uploaded successfully!";
+          msg.className = "success";
+          e.target.reset();
+          loadDocuments();
+        } catch (err) {
+          msg.textContent = "❌ " + err.message;
+          msg.className = "error";
         }
+      });
 
-        data.documents.forEach((doc) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${doc.ownerName || "—"}</td>
-            <td>${doc.type}</td>
-            <td>${doc.issueDate ? new Date(doc.issueDate).toLocaleDateString() : "—"}</td>
-            <td>${doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : "—"}</td>
-            <td>${doc.status || "✅ Active"}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error("❌ loadDocuments Error:", err);
+      // 📋 Load existing documents
+      async function loadDocuments() {
+        try {
+          const res = await fetch("/api/documents/list", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          const tbody = document.querySelector("#docTable tbody");
+          const docs = data.documents || [];
+
+          tbody.innerHTML = "";
+          if (!docs.length) {
+            tbody.innerHTML =
+              "<tr><td colspan='7' style='text-align:center;'>No documents found</td></tr>";
+            return;
+          }
+
+          docs.forEach((d) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${d.ownerType}</td>
+              <td>${d.ownerName || "-"}</td>
+              <td>${d.type}</td>
+              <td>${d.issueDate ? d.issueDate.split("T")[0] : "-"}</td>
+              <td>${d.expiryDate ? d.expiryDate.split("T")[0] : "-"}</td>
+              <td>${d.status}</td>
+              <td><a href="${d.filePath}" target="_blank">📄 View</a></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("❌ loadDocuments Error:", err);
+        }
       }
-    }
 
-    document.getElementById("ownerType").addEventListener("change", loadOwners);
-    document.getElementById("backBtn").addEventListener("click", () => {
-      window.location.href = "sub-dashboard.html";
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
       loadDocuments();
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

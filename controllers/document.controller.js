@@ -1,85 +1,126 @@
+import fs from "fs";
+import path from "path";
 import Document from "../models/document.model.js";
 import Driver from "../models/driver.model.js";
-import Vendor from "../models/vendor.model.js";
+import Vehicle from "../models/vehicle.model.js";
 
-// 🟢 Upload document
+/**
+ * 📤 Upload Document (Driver or Vehicle)
+ */
 export const uploadDocument = async (req, res) => {
   try {
-    const { driverId, docType, expiryDate } = req.body;
+    const { ownerId, ownerType, type, issueDate, expiryDate } = req.body;
+    const vendorId = req.user.vendorId || req.user.id;
     const file = req.file;
 
-    if (!driverId || !docType || !file)
-      return res.status(400).json({ error: "Missing fields or file" });
-
-    const driver = await Driver.findOne({
-      _id: driverId,
-      vendorId: req.user.id,
+    console.log("📩 Incoming Document Upload:", {
+      ownerId,
+      ownerType,
+      type,
+      vendorId,
+      file: file?.originalname,
     });
-    if (!driver)
-      return res
-        .status(403)
-        .json({ error: "Driver not found or unauthorized" });
 
-    const doc = await Document.create({
-      driverId,
-      vendorId: req.user.id,
-      docType,
-      filePath: `/uploads/${file.filename}`,
+    // 🧱 Ensure upload directory exists
+    const uploadDir = path.join("uploads", "documents");
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+    // 🧩 Validate
+    if (!file) return res.status(400).json({ error: "File upload is required" });
+    if (!ownerId || !ownerType || !type)
+      return res.status(400).json({ error: "Missing required fields" });
+
+    // 🔍 Validate owner belongs to vendor
+    let owner;
+    if (ownerType === "Driver") {
+      owner = await Driver.findOne({ _id: ownerId, vendor: vendorId });
+    } else if (ownerType === "Vehicle") {
+      // Change "vendor" to "vendorId" if that's what your schema uses
+      owner = await Vehicle.findOne({ _id: ownerId, vendor: vendorId });
+    } else {
+      return res.status(400).json({ error: "Invalid ownerType" });
+    }
+
+    if (!owner) {
+      console.error(`❌ Owner not found or unauthorized for ${ownerType}`);
+      return res.status(403).json({ error: "Unauthorized or not found" });
+    }
+
+    // 🧾 Save document
+    const document = await Document.create({
+      vendorId,
+      ownerId,
+      ownerType,
+      type,
+      issueDate: issueDate ? new Date(issueDate) : null,
       expiryDate: expiryDate ? new Date(expiryDate) : null,
+      filePath: `/uploads/documents/${file.filename}`,
+      status: "Pending",
     });
 
-    res.status(201).json({ message: "Document uploaded successfully", doc });
+    console.log("✅ Document added:", document._id);
+    res
+      .status(201)
+      .json({ message: `${ownerType} document uploaded successfully`, document });
   } catch (err) {
-    console.error("❌ uploadDocument:", err);
+    console.error("❌ uploadDocument error trace:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 📋 List documents for this vendor
+/**
+ * 📋 Get all documents for the logged-in vendor
+ */
 export const getMyDocuments = async (req, res) => {
   try {
-    const vendorId = req.user.id;
-    const docs = await Document.find({ vendorId })
-      .populate("driverId", "name")
-      .sort({ uploadDate: -1 });
+    const vendorId = req.user.vendorId || req.user.id;
 
-    // ⚡ Auto-mark expired docs dynamically
-    const today = new Date();
+    const documents = await Document.find({ vendorId })
+      .populate("ownerId")
+      .sort({ createdAt: -1 });
+
+    const now = new Date();
     const updates = [];
 
-    docs.forEach((d) => {
-      if (d.expiryDate && new Date(d.expiryDate) < today && d.status !== "Expired") {
-        d.status = "Expired";
+    documents.forEach((doc) => {
+      if (doc.expiryDate && new Date(doc.expiryDate) < now && doc.status !== "Expired") {
+        doc.status = "Expired";
         updates.push(
-          Document.updateOne({ _id: d._id }, { $set: { status: "Expired" } })
+          Document.updateOne({ _id: doc._id }, { $set: { status: "Expired" } })
         );
       }
     });
+
     if (updates.length) await Promise.all(updates);
 
-    res.json({ documents: docs });
+    const formatted = documents.map((doc) => ({
+      _id: doc._id,
+      ownerType: doc.ownerType,
+      ownerName:
+        doc.ownerType === "Driver"
+          ? doc.ownerId?.name
+          : doc.ownerId?.registrationNumber || "Unknown",
+      type: doc.type,
+      issueDate: doc.issueDate,
+      expiryDate: doc.expiryDate,
+      status: doc.status,
+      filePath: doc.filePath,
+    }));
+
+    res.json({ documents: formatted });
   } catch (err) {
-    console.error("❌ getMyDocuments:", err.message);
+    console.error("❌ getMyDocuments error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// --- Optional Daily Cron Job (if you want scheduled updates) ---
-export const autoExpireDocuments = async () => {
-  const today = new Date();
-  await Document.updateMany(
-    { expiryDate: { $lt: today }, status: { $ne: "Expired" } },
-    { $set: { status: "Expired" } }
-  );
-  console.log("✅ Auto-expired old documents");
-};
 
-
-// 🟠 For SuperVendor — approve/reject document
+/**
+ * 🧾 Approve or Reject document (SuperVendor only)
+ */
 export const verifyDocument = async (req, res) => {
   try {
     const { docId, status } = req.body;
-
     if (!["Approved", "Rejected"].includes(status))
       return res.status(400).json({ error: "Invalid status" });
 
@@ -96,38 +137,9 @@ export const verifyDocument = async (req, res) => {
   }
 };
 
-// 🧾 Fetch all documents for SuperVendor (includes vendor & driver)
-export const getAllDocuments = async (req, res) => {
-  try {
-    if (req.user.role !== "SuperVendor")
-      return res.status(403).json({ error: "Access denied" });
-
-    const documents = await Document.find()
-      .populate("vendorId", "name region")
-      .populate("driverId", "name licenseNumber");
-
-    res.json({ documents });
-  } catch (err) {
-    console.error("❌ getAllDocuments:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// 🕓 Auto-update expired documents
-export const checkExpiredDocuments = async () => {
-  try {
-    const now = new Date();
-    const result = await Document.updateMany(
-      { expiryDate: { $lt: now }, status: { $ne: "Expired" } },
-      { $set: { status: "Expired" } }
-    );
-    if (result.modifiedCount > 0)
-      console.log(`⚠️ ${result.modifiedCount} documents marked as expired`);
-  } catch (err) {
-    console.error("❌ Expiry check failed:", err.message);
-  }
-};
-// 📊 Get Compliance Summary
+/**
+ * 📊 Compliance Summary (SuperVendor)
+ */
 export const getComplianceSummary = async (req, res) => {
   try {
     if (req.user.role !== "SuperVendor")
@@ -153,5 +165,19 @@ export const getComplianceSummary = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const checkExpiredDocuments = async () => {
+  try {
+    const now = new Date();
+    const result = await Document.updateMany(
+      { expiryDate: { $lt: now }, status: { $ne: "Expired" } },
+      { $set: { status: "Expired" } }
+    );
+    if (result.modifiedCount > 0)
+      console.log(`⚠️ ${result.modifiedCount} documents marked as expired`);
+  } catch (err) {
+    console.error("❌ checkExpiredDocuments failed:", err.message);
   }
 };
