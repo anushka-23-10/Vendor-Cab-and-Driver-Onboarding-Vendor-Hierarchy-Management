@@ -1,7 +1,8 @@
+// routes/driver.routes.js
 import express from "express";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
-import { addDriver, getDrivers } from "../controllers/driver.controller.js";
+import { addDriver, listDrivers } from "../controllers/driver.controller.js";
 
 const router = express.Router();
 
@@ -13,10 +14,10 @@ router.post(
 );
 
 router.get(
-  "/my",
+  "/list",
   authenticate,
   authorize(["SuperVendor", "RegionalVendor", "CityVendor", "LocalVendor"]),
-  getDrivers
+  listDrivers
 );
 
 export default router;

@@ -111,6 +111,57 @@
       .disabled::after {
         content: " 🔒";
       }
+
+      /* SubVendor form */
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      input,
+      select {
+        flex: 1 1 45%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      button.add-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      button.add-btn:hover {
+        background: #0056b3;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .center {
+        text-align: center;
+      }
     </style>
   </head>
 
@@ -141,6 +192,33 @@
         <button id="bookingBtn" class="action-btn">📦 Booking Management</button>
         <button id="paymentsBtn" class="action-btn">💰 Payments</button>
       </div>
+    </section>
+
+    <!-- 🏢 SubVendor Hierarchy -->
+    <section>
+      <h3>🏢 SubVendor Hierarchy</h3>
+      <form id="childVendorForm">
+        <input type="text" id="childName" placeholder="SubVendor Name" required />
+        <input type="email" id="childContact" placeholder="Contact Email" required />
+        <input type="text" id="childUsername" placeholder="Username" required />
+        <select id="childRole" required></select>
+        <input type="text" id="childRegion" placeholder="Region" required />
+        <button type="submit" class="add-btn">Create SubVendor</button>
+      </form>
+
+      <table id="childVendorTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Region</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody class="center">
+          <tr><td colspan="4">Loading...</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <script>
@@ -179,17 +257,32 @@
 
           perms.forEach((perm) => {
             const div = document.createElement("div");
-            div.className = "perm-item " + (p[perm.key] ? "perm-allowed" : "perm-denied");
-            div.innerText = `${perm.label}: ${p[perm.key] ? "Allowed ✅" : "Not Allowed ❌"}`;
+            div.className =
+              "perm-item " + (p[perm.key] ? "perm-allowed" : "perm-denied");
+            div.innerText = `${perm.label}: ${
+              p[perm.key] ? "Allowed ✅" : "Not Allowed ❌"
+            }`;
             permList.appendChild(div);
           });
 
-          // Enable or disable buttons
           setButtonState("fleetBtn", p.fleetOnboarding, "fleet.html");
           setButtonState("driverBtn", p.driverOnboarding, "drivers.html");
           setButtonState("complianceBtn", p.complianceTracking, "compliance.html");
           setButtonState("bookingBtn", p.bookingManagement, "bookings.html");
           setButtonState("paymentsBtn", p.payments, "payments.html");
+
+          // prepare allowed roles for subvendor creation
+          const allowed = {
+            SuperVendor: ["RegionalVendor", "CityVendor", "LocalVendor"],
+            RegionalVendor: ["CityVendor", "LocalVendor"],
+            CityVendor: ["LocalVendor"],
+            LocalVendor: [],
+          }[v.role] || [];
+          document.getElementById("childRole").innerHTML = allowed
+            .map((r) => `<option value="${r}">${r}</option>`)
+            .join("");
+
+          loadChildVendors();
         } catch (err) {
           console.error("Error:", err);
           alert("Failed to load subvendor details");
@@ -202,14 +295,70 @@
         const btn = document.getElementById(id);
         if (allowed) {
           btn.classList.add("enabled");
-          btn.addEventListener("click", () => {
-            window.location.href = link;
-          });
+          btn.addEventListener("click", () => (window.location.href = link));
         } else {
           btn.classList.add("disabled");
           btn.disabled = true;
         }
       }
+
+      // 🔹 Load subvendors
+      async function loadChildVendors() {
+        try {
+          const res = await fetch("/api/vendors/my-subvendors", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          const tbody = document.querySelector("#childVendorTable tbody");
+          tbody.innerHTML = "";
+          if (!data.vendors?.length) {
+            tbody.innerHTML =
+              "<tr><td colspan='4'>No child subvendors found</td></tr>";
+            return;
+          }
+          data.vendors.forEach((v) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${v.name}</td><td>${v.contactInfo}</td><td>${v.region}</td><td>${v.role}</td>`;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Error loading subvendors:", err);
+        }
+      }
+
+      // 🔹 Create subvendor
+      document
+        .getElementById("childVendorForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          try {
+            const payload = {
+              name: childName.value,
+              contactInfo: childContact.value,
+              username: childUsername.value,
+              role: childRole.value,
+              region: childRegion.value,
+            };
+            const res = await fetch("/api/vendors/create-subvendor", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              alert("SubVendor created successfully!");
+              e.target.reset();
+              loadChildVendors();
+            } else {
+              const data = await res.json();
+              alert(data.error || "Error creating SubVendor");
+            }
+          } catch (err) {
+            alert("Error creating SubVendor");
+          }
+        });
 
       document.getElementById("logoutBtn").addEventListener("click", () => {
         localStorage.clear();

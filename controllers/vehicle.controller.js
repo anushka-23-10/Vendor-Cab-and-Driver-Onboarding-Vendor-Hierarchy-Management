@@ -1,115 +1,107 @@
+// controllers/vehicle.controller.js
 import Vehicle from "../models/vehicle.model.js";
 import Vendor from "../models/vendor.model.js";
-import Driver from "../models/driver.model.js";
-import Document from "../models/document.model.js";
-// 🟢 Add new vehicle
+
 export const addVehicle = async (req, res) => {
   try {
-    const { registrationNumber, model, seatingCapacity, fuelType } = req.body;
-    const vendorId = req.user.id;
-
-    const vendor = await Vendor.findById(vendorId);
-    if (!vendor || !vendor.isActive)
-      return res.status(403).json({ error: "Unauthorized vendor" });
-
-    const existing = await Vehicle.findOne({ registrationNumber });
-    if (existing)
-      return res.status(400).json({ error: "Vehicle already exists" });
-
-    const vehicle = await Vehicle.create({
+    const { registrationNumber, model, capacity, fuelType } = req.body;
+    console.log("📩 Incoming Vehicle Add:", {
       registrationNumber,
       model,
-      seatingCapacity,
+      capacity,
       fuelType,
-      vendorId,
+    });
+    console.log("🔑 Vendor from token:", req.user);
+
+    if (!registrationNumber || !model || !capacity || !fuelType) {
+      return res.status(400).json({ error: "All fields are required." });
+    }
+
+    const vendorId = req.user?.vendorId;
+    if (!vendorId) {
+      console.error("🚫 Vendor ID missing from token");
+      return res.status(401).json({ error: "Unauthorized vendor" });
+    }
+
+    const vendor = await Vendor.findById(vendorId);
+    if (!vendor) {
+      console.error("🚫 Vendor not found in DB:", vendorId);
+      return res.status(404).json({ error: "Vendor not found." });
+    }
+
+    const existing = await Vehicle.findOne({ registrationNumber });
+    if (existing) {
+      console.error("⚠️ Duplicate vehicle detected:", registrationNumber);
+      return res.status(400).json({ error: "Vehicle already registered." });
+    }
+
+    const vehicle = new Vehicle({
+      registrationNumber,
+      model,
+      capacity,
+      fuelType,
+      vendor: vendorId,
     });
 
-    res.status(201).json({ message: "Vehicle added successfully", vehicle });
+    await vehicle.save();
+    console.log("✅ Vehicle added:", vehicle);
+
+    res.status(201).json({ message: "Vehicle added successfully!", vehicle });
   } catch (err) {
-    console.error("❌ addVehicle error:", err);
+    console.error("❌ addVehicle Error Trace:", err);
+    res.status(500).json({ error: err.message || "Internal server error" });
+  }
+};
+
+export const getVehicles = async (req, res) => {
+  try {
+    const vendorId = req.user.vendorId;
+    const vehicles = await Vehicle.find({ vendor: vendorId }).populate(
+      "assignedDriver",
+      "name"
+    );
+    res.json({ vehicles });
+  } catch (err) {
+    console.error("❌ getVehicles Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 🟡 Assign driver to vehicle
 export const assignDriver = async (req, res) => {
   try {
-    const { vehicleId, driverId } = req.body;
-    const vendorId = req.user.id;
+    const { registrationNumber, driverId } = req.body;
 
-    const vehicle = await Vehicle.findOne({ _id: vehicleId, vendorId });
-    if (!vehicle)
-      return res
-        .status(404)
-        .json({ error: "Vehicle not found or unauthorized" });
+    if (!registrationNumber || !driverId) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
 
-    const driver = await Driver.findOne({ _id: driverId, vendorId });
-    if (!driver)
-      return res
-        .status(404)
-        .json({ error: "Driver not found or unauthorized" });
+    const vendorId = req.user.vendorId;
+    const vehicle = await Vehicle.findOne({
+      registrationNumber,
+      vendor: vendorId,
+    });
+    if (!vehicle) return res.status(404).json({ error: "Vehicle not found" });
 
-    vehicle.assignedDriver = driver._id;
+    vehicle.assignedDriver = driverId;
     await vehicle.save();
 
     res.json({ message: "Driver assigned successfully", vehicle });
   } catch (err) {
-    console.error("❌ assignDriver error:", err);
+    console.error("❌ assignDriver Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 📋 Get all vehicles for current vendor
-export const getVehicles = async (req, res) => {
-  try {
-    const vehicles = await Vehicle.find({ vendorId: req.user.id }).populate(
-      "assignedDriver",
-      "name licenseNumber"
-    );
-    res.json({ vehicles });
-  } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// ✅ Get Fleet Overview for a Vendor
 export const getFleetOverview = async (req, res) => {
   try {
-    const vendorId = req.user.id;
-
-    // Find all vehicles for the vendor
-    const vehicles = await Vehicle.find({ vendorId }).lean();
-
-    // Attach driver info to each vehicle
-    const fleet = await Promise.all(
-      vehicles.map(async (v) => {
-        const driver = await Driver.findOne({ assignedVehicle: v._id });
-        let compliance = "N/A";
-
-        if (driver) {
-          const docs = await Document.find({ driverId: driver._id });
-          if (!docs.length) compliance = "⚠️ No Docs";
-          else if (docs.some((d) => ["Rejected", "Expired"].includes(d.status)))
-            compliance = "❌ Non-Compliant";
-          else if (docs.every((d) => d.status === "Approved"))
-            compliance = "✅ Compliant";
-          else compliance = "🕒 Pending";
-        }
-
-        return {
-          registrationNumber: v.registrationNumber,
-          model: v.model,
-          fuelType: v.fuelType,
-          seatingCapacity: v.seatingCapacity,
-          assignedDriver: driver ? driver.name : "-",
-          compliance,
-        };
-      })
+    const vendorId = req.user.vendorId;
+    const vehicles = await Vehicle.find({ vendor: vendorId }).populate(
+      "assignedDriver",
+      "name"
     );
-
-    res.json({ fleet });
+    res.json({ fleet: vehicles });
   } catch (err) {
-    console.error("❌ getFleetOverview:", err.message);
+    console.error("❌ getFleetOverview Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };

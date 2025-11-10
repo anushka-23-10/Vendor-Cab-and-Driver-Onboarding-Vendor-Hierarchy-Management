@@ -1,67 +1,64 @@
 // controllers/vendor.controller.js
+import Vendor from "../models/vendor.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import Vendor from "../models/vendor.model.js";
-import { Types } from "mongoose";
+import mongoose from "mongoose";
 
+// ================================
 // 🟢 Register SuperVendor
+// ================================
 export const registerSuperVendor = async (req, res) => {
   try {
-    const { name, username, password, region } = req.body;
-    if (!name || !username || !password)
-      return res.status(400).json({ error: "All fields are required" });
+    const { name, username, password, contactInfo, region } = req.body;
 
     const existing = await Vendor.findOne({ username });
     if (existing) return res.status(400).json({ error: "Username already exists" });
 
-    const hashed = await bcrypt.hash(password, 10);
-    const vendor = new Vendor({
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newVendor = new Vendor({
       name,
       username,
-      password: hashed,
+      password: hashedPassword,
+      contactInfo,
       role: "SuperVendor",
       region,
       isActive: true,
     });
-    await vendor.save();
 
-    res.status(201).json({ message: "SuperVendor registered successfully", vendor });
+    await newVendor.save();
+
+    res.status(201).json({ message: "SuperVendor registered successfully!", vendor: newVendor });
   } catch (err) {
     console.error("❌ registerSuperVendor Error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 🟣 Login vendor
+// ================================
+// 🟣 Vendor Login
+// ================================
 export const loginVendor = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const vendor = await Vendor.findOne({ username });
 
+    const vendor = await Vendor.findOne({ username });
     if (!vendor) return res.status(404).json({ error: "Vendor not found" });
 
-    const valid = await bcrypt.compare(password, vendor.password);
-    if (!valid) return res.status(401).json({ error: "Invalid credentials" });
+    const isMatch = await bcrypt.compare(password, vendor.password);
+    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-    if (!vendor.isActive)
-      return res.status(403).json({ error: "Account not activated" });
-
-    // ✅ Include vendorId in token
     const token = jwt.sign(
-      { vendorId: vendor._id.toString(), role: vendor.role },
-      process.env.JWT_SECRET,
+      { vendorId: vendor._id, role: vendor.role },
+      process.env.JWT_SECRET || "secretkey",
       { expiresIn: "7d" }
     );
 
     res.json({
       message: "Login successful",
       token,
-      vendor: {
-        id: vendor._id,
-        name: vendor.name,
-        role: vendor.role,
-        region: vendor.region,
-      },
+      role: vendor.role,
+      vendorId: vendor._id,
     });
   } catch (err) {
     console.error("❌ loginVendor Error:", err);
@@ -69,95 +66,169 @@ export const loginVendor = async (req, res) => {
   }
 };
 
-// 🟢 Get logged-in vendor details
-export const getMyVendor = async (req, res) => {
+// ================================
+// 🟠 Activate Vendor (Admin use)
+// ================================
+export const activateVendor = async (req, res) => {
   try {
-    const vendorId = req.user.vendorId;
-
-    if (!Types.ObjectId.isValid(vendorId)) {
-      return res.status(400).json({ error: "Invalid vendor ID" });
-    }
-
-    const vendor = await Vendor.findById(vendorId).select("-password");
+    const { vendorId } = req.body;
+    const vendor = await Vendor.findById(vendorId);
     if (!vendor) return res.status(404).json({ error: "Vendor not found" });
 
-    res.json({ vendor });
+    vendor.isActive = true;
+    await vendor.save();
+
+    res.json({ message: "Vendor activated successfully" });
   } catch (err) {
-    console.error("❌ getMyVendor Error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ activateVendor Error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 🟣 Create SubVendor
+// ================================
+// 🧩 Create SubVendor
+// ================================
 export const createSubVendor = async (req, res) => {
   try {
     const { name, contactInfo, username, role, region } = req.body;
-    if (!name || !contactInfo || !username || !role)
-      return res.status(400).json({ error: "Missing fields" });
+    const parentVendorId = req.user.vendorId;
 
     const existing = await Vendor.findOne({ username });
-    if (existing)
-      return res.status(400).json({ error: "Username already exists" });
+    if (existing) return res.status(400).json({ error: "Username already exists" });
 
-    const password = Math.random().toString(36).slice(-8); // random temp pwd
-    const hashed = await bcrypt.hash(password, 10);
+    const password = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const subVendor = new Vendor({
       name,
       contactInfo,
       username,
-      password: hashed,
+      password: hashedPassword,
       role,
       region,
-      parentVendor: req.user.vendorId,
+      parentVendorId,
+      isActive: true,
     });
 
     await subVendor.save();
 
-    res.json({
-      message: "SubVendor created successfully",
-      subVendor,
-      tempPassword: password,
+    res.status(201).json({
+      message: "SubVendor created successfully!",
+      vendor: subVendor,
+      generatedPassword: password,
     });
   } catch (err) {
     console.error("❌ createSubVendor Error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 🟣 Get SubVendors
+// ================================
+// 📋 Get Logged-In Vendor Info
+// ================================
+export const getMyVendor = async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.user.vendorId).select("-password");
+    if (!vendor) return res.status(404).json({ error: "Vendor not found" });
+    res.json({ vendor });
+  } catch (err) {
+    console.error("❌ getMyVendor Error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// ================================
+// 🧾 Get SubVendors under a Vendor
+// ================================
 export const getMySubVendors = async (req, res) => {
   try {
-    const vendors = await Vendor.find({ parentVendor: req.user.vendorId }).select(
-      "-password"
-    );
-    console.log("📋 Found subvendors:", vendors.length);
+    const vendors = await Vendor.find({ parentVendorId: req.user.vendorId });
+    console.log(`📋 Found subvendors: ${vendors.length}`);
     res.json({ vendors });
   } catch (err) {
     console.error("❌ getMySubVendors Error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// 🟢 Fleet Overview (for SuperVendor dashboard)
+// ================================
+// ⚙️ Set or Update Permissions
+// ================================
+export const setPermissions = async (req, res) => {
+  try {
+    const { subVendorId, permissions } = req.body;
+    const superVendorId = req.user.vendorId;
+
+    const superVendor = await Vendor.findById(superVendorId);
+    if (!superVendor || superVendor.role !== "SuperVendor") {
+      return res.status(403).json({ error: "Unauthorized. Only SuperVendors can modify permissions." });
+    }
+
+    const subVendor = await Vendor.findById(subVendorId);
+    if (!subVendor) return res.status(404).json({ error: "SubVendor not found" });
+
+    if (String(subVendor.parentVendorId) !== String(superVendorId)) {
+      return res.status(403).json({ error: "Cannot modify vendor outside your hierarchy." });
+    }
+
+    subVendor.permissions = { ...subVendor.permissions, ...permissions };
+    await subVendor.save();
+
+    res.json({
+      message: "Permissions updated successfully",
+      permissions: subVendor.permissions,
+    });
+  } catch (err) {
+    console.error("❌ setPermissions Error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// ================================
+// 📊 Fleet & Compliance Overview (SuperVendor)
+// ================================
 export const getVendorFleetOverview = async (req, res) => {
   try {
-    const vendors = await Vendor.find({ parentVendor: req.user.vendorId });
-    const overview = vendors.map((v) => ({
-      vendorName: v.name,
-      role: v.role,
-      region: v.region,
-      fleetCount: Math.floor(Math.random() * 10),
-      driverCount: Math.floor(Math.random() * 20),
-      totalDocs: 10,
-      approved: 7,
-      pending: 2,
-      rejected: 1,
-      complianceRate: 70 + Math.floor(Math.random() * 20),
-    }));
-    res.json({ overview });
+    const vendorRole = req.user.role;
+    if (vendorRole !== "SuperVendor") {
+      return res.status(403).json({ error: "Access denied. SuperVendor only." });
+    }
+
+    const subVendors = await Vendor.find({ parentVendorId: req.user.vendorId });
+
+    if (!subVendors.length) return res.json({ overview: [] });
+
+    const overviewData = await Promise.all(
+      subVendors.map(async (v) => {
+        const fleetCount = await mongoose.model("Vehicle").countDocuments({ vendor: v._id });
+        const driverCount = await mongoose.model("Driver").countDocuments({ vendor: v._id });
+        const docs = await mongoose.model("Document").find({ vendor: v._id });
+
+        const totalDocs = docs.length;
+        const approved = docs.filter((d) => d.status === "Approved").length;
+        const pending = docs.filter((d) => d.status === "Pending").length;
+        const rejected = docs.filter((d) => d.status === "Rejected").length;
+
+        const complianceRate = totalDocs ? Math.round((approved / totalDocs) * 100) : 0;
+
+        return {
+          vendorName: v.name,
+          role: v.role,
+          region: v.region,
+          fleetCount,
+          driverCount,
+          totalDocs,
+          approved,
+          pending,
+          rejected,
+          complianceRate,
+        };
+      })
+    );
+
+    res.json({ overview: overviewData });
   } catch (err) {
     console.error("❌ getVendorFleetOverview Error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };

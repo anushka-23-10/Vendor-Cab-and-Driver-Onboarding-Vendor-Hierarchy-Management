@@ -87,7 +87,10 @@
         <input type="text" id="driverName" placeholder="Driver Name" required />
         <input type="text" id="license" placeholder="License Number" required />
         <input type="email" id="email" placeholder="Driver Email" required />
-        <select id="assignVehicle" required></select>
+        <select id="assignVehicle">
+          <option value="">-- Optional: Assign Vehicle --</option>
+        </select>
+
         <button type="submit">Add Driver</button>
       </form>
     </section>
@@ -147,29 +150,33 @@
 
         data.drivers.forEach((d) => {
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${d.name}</td><td>${d.licenseNumber}</td><td>${d.contactInfo}</td><td>${d.assignedVehicle || "-"}</td>`;
+          tr.innerHTML = `<td>${d.name}</td><td>${d.licenseNumber}</td><td>${
+            d.contactInfo
+          }</td><td>${d.assignedVehicle || "-"}</td>`;
           tbody.appendChild(tr);
         });
       }
 
-      document.getElementById("driverForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const res = await fetch("/api/drivers/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: driverName.value,
-            licenseNumber: license.value,
-            contactInfo: email.value,
-            assignedVehicle: assignVehicle.value,
-          }),
+      document
+        .getElementById("driverForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const res = await fetch("/api/drivers/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: driverName.value,
+              licenseNumber: license.value,
+              contactInfo: email.value,
+              assignedVehicle: assignVehicle.value,
+            }),
+          });
+          alert(res.ok ? "Driver added successfully!" : "Error adding driver");
+          loadDrivers();
         });
-        alert(res.ok ? "Driver added successfully!" : "Error adding driver");
-        loadDrivers();
-      });
 
       document.getElementById("backBtn").addEventListener("click", () => {
         window.location.href = "sub-dashboard.html";

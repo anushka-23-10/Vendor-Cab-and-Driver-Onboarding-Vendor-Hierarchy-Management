@@ -1,28 +1,27 @@
+// routes/vehicle.routes.js
 import express from "express";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
-import {
-  addVehicle,
-  assignDriver,
-  getVehicles,
-} from "../controllers/vehicle.controller.js";
-import { getFleetOverview } from "../controllers/vehicle.controller.js";
+import { addVehicle, assignDriver, getVehicles, getFleetOverview } from "../controllers/vehicle.controller.js";
 
 const router = express.Router();
 
 router.get("/overview", authenticate, getFleetOverview);
+
 router.post(
   "/add",
   authenticate,
   authorize(["SuperVendor", "RegionalVendor", "CityVendor", "LocalVendor"]),
   addVehicle
 );
+
 router.post(
   "/assign-driver",
   authenticate,
   authorize(["SuperVendor", "RegionalVendor", "CityVendor", "LocalVendor"]),
   assignDriver
 );
+
 router.get(
   "/my",
   authenticate,
