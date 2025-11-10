@@ -140,6 +140,7 @@ export const verifyDocument = async (req, res) => {
 /**
  * 📊 Compliance Summary (SuperVendor)
  */
+// 📊 Get overall compliance summary (for SuperVendor)
 export const getComplianceSummary = async (req, res) => {
   try {
     if (req.user.role !== "SuperVendor")
@@ -164,9 +165,29 @@ export const getComplianceSummary = async (req, res) => {
       complianceRate,
     });
   } catch (err) {
+    console.error("❌ getComplianceSummary error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// 🧾 Get all documents across vendors (for SuperVendor)
+export const getAllDocuments = async (req, res) => {
+  try {
+    if (req.user.role !== "SuperVendor")
+      return res.status(403).json({ error: "Access denied" });
+
+    const documents = await Document.find()
+      .populate("vendorId", "name region")
+      .populate("ownerId", "name licenseNumber registrationNumber")
+      .sort({ createdAt: -1 });
+
+    res.json({ documents });
+  } catch (err) {
+    console.error("❌ getAllDocuments error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 
 export const checkExpiredDocuments = async () => {
   try {
