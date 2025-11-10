@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Driver Management</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f7f9fb;
+        margin: 0;
+        padding: 20px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+      }
+
+      section {
+        background: white;
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      input,
+      select,
+      button {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2>👨‍✈️ Driver Management</h2>
+      <button id="backBtn">← Back to Dashboard</button>
+    </header>
+
+    <section>
+      <h3>Add New Driver</h3>
+      <form id="driverForm">
+        <input type="text" id="driverName" placeholder="Driver Name" required />
+        <input type="text" id="license" placeholder="License Number" required />
+        <input type="email" id="email" placeholder="Driver Email" required />
+        <select id="assignVehicle" required></select>
+        <button type="submit">Add Driver</button>
+      </form>
+    </section>
+
+    <section>
+      <h3>📋 Driver List</h3>
+      <table id="driverTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>License</th>
+            <th>Email</th>
+            <th>Vehicle</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Unauthorized access");
+        window.location.href = "index.html";
+      }
+
+      async function loadVehicles() {
+        const res = await fetch("/api/vehicles/my", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const select = document.getElementById("assignVehicle");
+        select.innerHTML = "";
+        if (!data.vehicles || data.vehicles.length === 0) {
+          select.innerHTML = `<option disabled>No vehicles available</option>`;
+          return;
+        }
+        data.vehicles.forEach((v) => {
+          const opt = document.createElement("option");
+          opt.value = v.registrationNumber;
+          opt.textContent = v.registrationNumber;
+          select.appendChild(opt);
+        });
+      }
+
+      async function loadDrivers() {
+        const res = await fetch("/api/drivers/list", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const tbody = document.querySelector("#driverTable tbody");
+        tbody.innerHTML = "";
+        if (!data.drivers || data.drivers.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No drivers found</td></tr>`;
+          return;
+        }
+
+        data.drivers.forEach((d) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${d.name}</td><td>${d.licenseNumber}</td><td>${d.contactInfo}</td><td>${d.assignedVehicle || "-"}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById("driverForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const res = await fetch("/api/drivers/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: driverName.value,
+            licenseNumber: license.value,
+            contactInfo: email.value,
+            assignedVehicle: assignVehicle.value,
+          }),
+        });
+        alert(res.ok ? "Driver added successfully!" : "Error adding driver");
+        loadDrivers();
+      });
+
+      document.getElementById("backBtn").addEventListener("click", () => {
+        window.location.href = "sub-dashboard.html";
+      });
+
+      loadVehicles();
+      loadDrivers();
+    </script>
+  </body>
+</html>

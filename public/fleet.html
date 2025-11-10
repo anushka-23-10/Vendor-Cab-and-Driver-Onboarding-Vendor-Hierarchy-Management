@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fleet Management</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f7f9fb;
+        margin: 0;
+        padding: 20px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+      }
+
+      section {
+        background: white;
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      h3 {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 6px;
+      }
+
+      input,
+      select,
+      button {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .success {
+        color: green;
+        font-weight: bold;
+      }
+
+      .error {
+        color: red;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2>🚗 Fleet Management</h2>
+      <button id="backBtn">← Back to Dashboard</button>
+    </header>
+
+    <section>
+      <h3>Vendor Info</h3>
+      <p><b>Name:</b> <span id="vendorName">Loading...</span></p>
+      <p><b>Region:</b> <span id="vendorRegion">-</span></p>
+    </section>
+
+    <section>
+      <h3>Add New Vehicle</h3>
+      <form id="vehicleForm">
+        <input type="text" id="regNum" placeholder="Registration Number (e.g. KA01AB1234)" required />
+        <input type="text" id="model" placeholder="Model (e.g. Innova Crysta)" required />
+        <input type="number" id="capacity" placeholder="Seating Capacity" min="1" max="60" required />
+        <select id="fuel" required>
+          <option value="">Select Fuel Type</option>
+          <option value="Petrol">Petrol</option>
+          <option value="Diesel">Diesel</option>
+          <option value="CNG">CNG</option>
+          <option value="Electric">Electric</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+        <button type="submit">Add Vehicle</button>
+        <p id="message"></p>
+      </form>
+    </section>
+
+    <section>
+      <h3>📋 Vehicle List</h3>
+      <table id="vehicleTable">
+        <thead>
+          <tr>
+            <th>Registration No</th>
+            <th>Model</th>
+            <th>Fuel Type</th>
+            <th>Capacity</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Unauthorized access");
+        window.location.href = "index.html";
+      }
+
+      const apiBase = "/api/vehicles"; // ✅ adjust if needed (e.g., /api/vendor/vehicles)
+
+      async function loadVendor() {
+        try {
+          const res = await fetch("/api/vendors/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (!data.vendor) throw new Error("No vendor data");
+          document.getElementById("vendorName").innerText = data.vendor.name;
+          document.getElementById("vendorRegion").innerText = data.vendor.region || "N/A";
+        } catch (err) {
+          alert("Error loading vendor info");
+        }
+      }
+
+      async function loadVehicles() {
+        const tbody = document.querySelector("#vehicleTable tbody");
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>`;
+
+        try {
+          const res = await fetch(`${apiBase}/my`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+
+          tbody.innerHTML = "";
+          if (!data.vehicles || data.vehicles.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No vehicles found</td></tr>`;
+            return;
+          }
+
+          data.vehicles.forEach((v) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${v.registrationNumber}</td>
+              <td>${v.model}</td>
+              <td>${v.fuelType}</td>
+              <td>${v.capacity}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error(err);
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">Failed to load vehicles</td></tr>`;
+        }
+      }
+
+      document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("message");
+        msg.innerText = "Adding vehicle...";
+        msg.className = "";
+
+        const payload = {
+          registrationNumber: document.getElementById("regNum").value.trim(),
+          model: document.getElementById("model").value.trim(),
+          capacity: parseInt(document.getElementById("capacity").value),
+          fuelType: document.getElementById("fuel").value,
+        };
+
+        try {
+          const res = await fetch(`${apiBase}/add`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to add vehicle");
+
+          msg.innerText = "✅ Vehicle added successfully!";
+          msg.className = "success";
+          e.target.reset();
+          loadVehicles();
+        } catch (err) {
+          console.error(err);
+          msg.innerText = "❌ " + err.message;
+          msg.className = "error";
+        }
+      });
+
+      document.getElementById("backBtn").addEventListener("click", () => {
+        window.location.href = "sub-dashboard.html";
+      });
+
+      loadVendor();
+      loadVehicles();
+    </script>
+  </body>
+</html>

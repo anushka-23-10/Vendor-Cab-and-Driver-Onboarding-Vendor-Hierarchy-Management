@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Booking Management</title>
+  <style>
+    body {font-family:"Segoe UI",sans-serif;background:#f7f9fb;margin:0;padding:20px;}
+    header {display:flex;justify-content:space-between;align-items:center;background:#007bff;color:white;padding:10px 20px;border-radius:6px;}
+    section {background:white;margin-top:30px;padding:20px;border-radius:10px;max-width:900px;margin:auto;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+    button {background:#007bff;color:white;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;font-weight:bold;}
+    button:hover {background:#0056b3;}
+  </style>
+</head>
+<body>
+  <header>
+    <h2>📦 Booking Management</h2>
+    <button id="backBtn">← Back to Dashboard</button>
+  </header>
+
+  <section>
+    <h3>Bookings</h3>
+    <p>This page will manage bookings and assignments when booking integration is added.</p>
+  </section>
+
+  <script>
+    document.getElementById("backBtn").addEventListener("click",()=>window.location.href="sub-dashboard.html");
+  </script>
+</body>
+</html>

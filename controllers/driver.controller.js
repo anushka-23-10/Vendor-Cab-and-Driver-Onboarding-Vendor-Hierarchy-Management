@@ -1,57 +1,33 @@
 import Driver from "../models/driver.model.js";
-import Document from "../models/document.model.js";
 
-// ✅ Helper to check compliance of a single driver
-const checkDriverCompliance = async (driverId) => {
-  const docs = await Document.find({ driverId });
-  if (!docs.length) return false;
-
-  for (const d of docs) {
-    if (["Rejected", "Expired", "Pending"].includes(d.status)) {
-      return false;
-    }
-  }
-  return true;
-};
-
-// ✅ Add Driver
-export const createDriver = async (req, res) => {
+export const addDriver = async (req, res) => {
   try {
-    const vendorId = req.user.id;
-    const { name, licenseNumber, contactInfo, assignedVehicle } = req.body;
+    const { name, licenseNumber, assignedVehicle } = req.body;
 
-    const driver = await Driver.create({
+    if (!name || !licenseNumber)
+      return res.status(400).json({ error: "Missing fields" });
+
+    const driver = new Driver({
       name,
       licenseNumber,
-      contactInfo,
       assignedVehicle,
-      vendorId,
+      vendor: req.user.vendorId,
     });
 
-    res.status(201).json({ message: "Driver added", driver });
+    await driver.save();
+    res.status(201).json({ message: "Driver added successfully", driver });
   } catch (err) {
-    console.error("❌ createDriver:", err.message);
+    console.error("❌ addDriver Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// ✅ Get My Drivers (now includes compliance check)
-export const getMyDrivers = async (req, res) => {
+export const getDrivers = async (req, res) => {
   try {
-    const vendorId = req.user.id;
-    const drivers = await Driver.find({ vendorId }).lean();
-
-    // ⚡ Add compliance info
-    const driversWithCompliance = await Promise.all(
-      drivers.map(async (d) => {
-        const compliant = await checkDriverCompliance(d._id);
-        return { ...d, compliant };
-      })
-    );
-
-    res.json({ drivers: driversWithCompliance });
+    const drivers = await Driver.find({ vendor: req.user.vendorId });
+    res.json({ drivers });
   } catch (err) {
-    console.error("❌ getMyDrivers:", err.message);
+    console.error("❌ getDrivers Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };

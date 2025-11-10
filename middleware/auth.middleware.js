@@ -1,17 +1,29 @@
+// middleware/auth.middleware.js
 import jwt from "jsonwebtoken";
 
 export const authenticate = (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ error: "Authorization header missing" });
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "No token provided" });
+  }
 
-    const token = authHeader.split(" ")[1];
+  const token = authHeader.split(" ")[1];
+
+  try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded; // ✅ attach vendor info
+    // ✅ attach vendorId and role
+    req.user = {
+      vendorId: decoded.vendorId || decoded.id, // support both
+      role: decoded.role,
+    };
+
+    if (!req.user.vendorId)
+      return res.status(400).json({ error: "Invalid token payload" });
+
     next();
   } catch (err) {
-    console.error("❌ Token verification failed:", err.message);
-    res.status(403).json({ error: "Invalid or expired token" });
+    console.error("❌ Invalid or expired token:", err);
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 };
