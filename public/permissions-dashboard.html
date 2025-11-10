@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Manage Permissions | SuperVendor</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f7f9fb;
+        margin: 0;
+        padding: 20px;
+      }
+
+      header {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h2 {
+        margin: 0;
+      }
+
+      header button {
+        background: white;
+        color: #007bff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      header button:hover {
+        background: #e4ecff;
+      }
+
+      section {
+        background: white;
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+
+      button.save {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        margin-right: 8px;
+        cursor: pointer;
+      }
+
+      button.save:hover {
+        background: #0056b3;
+      }
+
+      button.back {
+        background: #ccc;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2>Vendor Permissions</h2>
+      <button class="back" id="goBackBtn">← Back to Dashboard</button>
+    </header>
+
+    <section>
+      <h3>Vendor Details</h3>
+      <p><b>Name:</b> <span id="vendorName">Loading...</span></p>
+      <p><b>Region:</b> <span id="vendorRegion">-</span></p>
+      <p><b>Role:</b> <span id="vendorRole">-</span></p>
+    </section>
+
+    <section>
+      <h3>Permissions</h3>
+      <table>
+        <thead>
+          <tr><th>Permission</th><th>Allowed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fleet Onboarding</td><td><input type="checkbox" id="fleetOnboarding"></td></tr>
+          <tr><td>Driver Onboarding</td><td><input type="checkbox" id="driverOnboarding"></td></tr>
+          <tr><td>Compliance Tracking</td><td><input type="checkbox" id="complianceTracking"></td></tr>
+          <tr><td>Booking Management</td><td><input type="checkbox" id="bookingManagement"></td></tr>
+          <tr><td>Payments</td><td><input type="checkbox" id="payments"></td></tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 15px; text-align: right;">
+        <button class="save" id="savePermissions">Save Changes</button>
+        <button class="back" id="goBackBtn2">Go Back</button>
+      </div>
+    </section>
+
+    <script>
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+
+      if (!token || role !== "SuperVendor") {
+        alert("Unauthorized access. Please log in as SuperVendor.");
+        window.location.href = "index.html";
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const vendorId = urlParams.get("vendorId");
+      if (!vendorId) {
+        alert("Missing Vendor ID");
+        window.location.href = "super-dashboard.html";
+      }
+
+      async function loadVendorDetails() {
+        try {
+          const res = await fetch(`/api/vendors/${vendorId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to load vendor");
+
+          const v = data.vendor;
+          document.getElementById("vendorName").innerText = v.name;
+          document.getElementById("vendorRegion").innerText = v.region || "N/A";
+          document.getElementById("vendorRole").innerText = v.role || "-";
+
+          const p = v.permissions || {};
+          ["fleetOnboarding","driverOnboarding","complianceTracking","bookingManagement","payments"]
+            .forEach(id => document.getElementById(id).checked = !!p[id]);
+        } catch (err) {
+          console.error(err);
+          alert("Error loading vendor details");
+        }
+      }
+
+      document.getElementById("savePermissions").addEventListener("click", async () => {
+        const permissions = {
+          fleetOnboarding: document.getElementById("fleetOnboarding").checked,
+          driverOnboarding: document.getElementById("driverOnboarding").checked,
+          complianceTracking: document.getElementById("complianceTracking").checked,
+          bookingManagement: document.getElementById("bookingManagement").checked,
+          payments: document.getElementById("payments").checked,
+        };
+
+        try {
+          const res = await fetch("/api/vendors/set-permissions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ subVendorId: vendorId, permissions }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Error saving permissions");
+          alert("Permissions updated successfully!");
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      });
+
+      document.getElementById("goBackBtn").addEventListener("click", () => {
+        window.location.href = "super-dashboard.html";
+      });
+      document.getElementById("goBackBtn2").addEventListener("click", () => {
+        window.location.href = "super-dashboard.html";
+      });
+
+      loadVendorDetails();
+    </script>
+  </body>
+</html>

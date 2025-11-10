@@ -145,7 +145,12 @@
       <h3>Create SubVendor</h3>
       <form id="createSubForm">
         <input type="text" id="subName" placeholder="SubVendor Name" required />
-        <input type="email" id="subContact" placeholder="Contact Email" required />
+        <input
+          type="email"
+          id="subContact"
+          placeholder="Contact Email"
+          required
+        />
         <input type="text" id="subUsername" placeholder="Username" required />
         <input type="text" id="subRegion" placeholder="Region" required />
         <select id="subRole">
@@ -200,15 +205,48 @@
       >
         <h3>Manage Permissions for <span id="permVendorName"></span></h3>
         <div id="permissionList">
-          <label><input type="checkbox" id="fleetOnboarding" /> Fleet Onboarding</label><br />
-          <label><input type="checkbox" id="driverOnboarding" /> Driver Onboarding</label><br />
-          <label><input type="checkbox" id="complianceTracking" /> Compliance Tracking</label><br />
-          <label><input type="checkbox" id="bookingManagement" /> Booking Management</label><br />
+          <label
+            ><input type="checkbox" id="fleetOnboarding" /> Fleet
+            Onboarding</label
+          ><br />
+          <label
+            ><input type="checkbox" id="driverOnboarding" /> Driver
+            Onboarding</label
+          ><br />
+          <label
+            ><input type="checkbox" id="complianceTracking" /> Compliance
+            Tracking</label
+          ><br />
+          <label
+            ><input type="checkbox" id="bookingManagement" /> Booking
+            Management</label
+          ><br />
           <label><input type="checkbox" id="payments" /> Payments</label><br />
         </div>
         <div style="margin-top: 15px; text-align: right">
-          <button id="savePermissions" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px;">Save</button>
-          <button id="closeModal" style="background: #ccc; border: none; padding: 8px 12px; border-radius: 5px;">Close</button>
+          <button
+            id="savePermissions"
+            style="
+              background: #007bff;
+              color: white;
+              border: none;
+              padding: 8px 12px;
+              border-radius: 5px;
+            "
+          >
+            Save
+          </button>
+          <button
+            id="closeModal"
+            style="
+              background: #ccc;
+              border: none;
+              padding: 8px 12px;
+              border-radius: 5px;
+            "
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -217,9 +255,15 @@
     <section>
       <h3>📊 Fleet & Compliance Overview</h3>
       <div id="summaryCards">
-        <div class="card green-bg">🟢 Compliant Vendors: <span id="greenCount">0</span></div>
-        <div class="card orange-bg">🟠 Partially Compliant: <span id="orangeCount">0</span></div>
-        <div class="card red-bg">🔴 Non-Compliant: <span id="redCount">0</span></div>
+        <div class="card green-bg">
+          🟢 Compliant Vendors: <span id="greenCount">0</span>
+        </div>
+        <div class="card orange-bg">
+          🟠 Partially Compliant: <span id="orangeCount">0</span>
+        </div>
+        <div class="card red-bg">
+          🔴 Non-Compliant: <span id="redCount">0</span>
+        </div>
       </div>
 
       <table id="overviewTable">
@@ -286,16 +330,18 @@
         data.vendors.forEach((v) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${v.name}</td>
-            <td>${v.contactInfo}</td>
-            <td>${v.region}</td>
-            <td>${v.role}</td>
-            <td>
-              <button 
-                style="background:#007bff;color:white;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;"
-                onclick="openPermissions('${v._id}', '${v.name}')"
-              >Manage</button>
-            </td>`;
+  <td>${v.name}</td>
+  <td>${v.contactInfo}</td>
+  <td>${v.region}</td>
+  <td>${v.role}</td>
+  <td>
+    <button 
+      style="background:#007bff;color:white;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;"
+      onclick="window.location.href='permissions-dashboard.html?vendorId=${v._id}'"
+    >Manage</button>
+  </td>
+`;
+
           tbody.appendChild(tr);
         });
       }
@@ -311,8 +357,15 @@
           });
           const data = await res.json();
           const perms = data.vendor.permissions || {};
-          ["fleetOnboarding", "driverOnboarding", "complianceTracking", "bookingManagement", "payments"]
-            .forEach(id => document.getElementById(id).checked = !!perms[id]);
+          [
+            "fleetOnboarding",
+            "driverOnboarding",
+            "complianceTracking",
+            "bookingManagement",
+            "payments",
+          ].forEach(
+            (id) => (document.getElementById(id).checked = !!perms[id])
+          );
           document.getElementById("permissionsModal").style.display = "flex";
         } catch (err) {
           alert("Error loading permissions");
@@ -323,26 +376,37 @@
         document.getElementById("permissionsModal").style.display = "none";
       });
 
-      document.getElementById("savePermissions").addEventListener("click", async () => {
-        if (!selectedVendorId) return;
-        const permissions = {
-          fleetOnboarding: document.getElementById("fleetOnboarding").checked,
-          driverOnboarding: document.getElementById("driverOnboarding").checked,
-          complianceTracking: document.getElementById("complianceTracking").checked,
-          bookingManagement: document.getElementById("bookingManagement").checked,
-          payments: document.getElementById("payments").checked,
-        };
-        const res = await fetch("/api/vendors/set-permissions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ subVendorId: selectedVendorId, permissions }),
+      document
+        .getElementById("savePermissions")
+        .addEventListener("click", async () => {
+          if (!selectedVendorId) return;
+          const permissions = {
+            fleetOnboarding: document.getElementById("fleetOnboarding").checked,
+            driverOnboarding:
+              document.getElementById("driverOnboarding").checked,
+            complianceTracking:
+              document.getElementById("complianceTracking").checked,
+            bookingManagement:
+              document.getElementById("bookingManagement").checked,
+            payments: document.getElementById("payments").checked,
+          };
+          const res = await fetch("/api/vendors/set-permissions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              subVendorId: selectedVendorId,
+              permissions,
+            }),
+          });
+          if (res.ok) {
+            alert("Permissions updated successfully!");
+            document.getElementById("permissionsModal").style.display = "none";
+            loadSubVendors();
+          } else alert("Error updating permissions");
         });
-        if (res.ok) {
-          alert("Permissions updated successfully!");
-          document.getElementById("permissionsModal").style.display = "none";
-          loadSubVendors();
-        } else alert("Error updating permissions");
-      });
 
       // 🟢 Fleet Overview
       async function loadFleetOverview() {
@@ -357,7 +421,9 @@
             '<tr><td colspan="10" style="text-align:center;">No fleet data available</td></tr>';
           return;
         }
-        let green = 0, orange = 0, red = 0;
+        let green = 0,
+          orange = 0,
+          red = 0;
         data.overview.forEach((v) => {
           const color =
             v.complianceRate >= 80
@@ -378,26 +444,31 @@
         document.getElementById("redCount").innerText = red;
       }
 
-      document.getElementById("createSubForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const res = await fetch("/api/vendors/create-subvendor", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            name: subName.value,
-            contactInfo: subContact.value,
-            username: subUsername.value,
-            role: subRole.value,
-            region: subRegion.value,
-          }),
+      document
+        .getElementById("createSubForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const res = await fetch("/api/vendors/create-subvendor", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: subName.value,
+              contactInfo: subContact.value,
+              username: subUsername.value,
+              role: subRole.value,
+              region: subRegion.value,
+            }),
+          });
+          const data = await res.json();
+          alert(res.ok ? "SubVendor created successfully!" : data.error);
+          if (res.ok) {
+            loadSubVendors();
+            loadFleetOverview();
+          }
         });
-        const data = await res.json();
-        alert(res.ok ? "SubVendor created successfully!" : data.error);
-        if (res.ok) {
-          loadSubVendors();
-          loadFleetOverview();
-        }
-      });
 
       document.getElementById("logoutBtn").addEventListener("click", () => {
         localStorage.clear();
