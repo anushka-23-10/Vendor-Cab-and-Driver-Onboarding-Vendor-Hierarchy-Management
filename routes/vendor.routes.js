@@ -54,22 +54,29 @@ router.get("/:id", authenticate, async (req, res) => {
 router.post("/set-permissions", authenticate, async (req, res) => {
   try {
     const { subVendorId, permissions } = req.body;
+
+    // Find the SuperVendor making the request
     const superVendor = await Vendor.findById(req.user.vendorId);
-    if (!superVendor || superVendor.role !== "SuperVendor")
+    if (!superVendor || superVendor.role !== "SuperVendor") {
       return res
         .status(403)
         .json({ error: "Only SuperVendors can modify permissions" });
+    }
 
+    // Find the subvendor being updated
     const subVendor = await Vendor.findById(subVendorId);
-    if (!subVendor)
+    if (!subVendor) {
       return res.status(404).json({ error: "SubVendor not found" });
+    }
 
-    if (String(subVendor.parentVendor) !== String(superVendor._id)) {
+    // ✅ FIX: use correct field name (parentVendorId)
+    if (String(subVendor.parentVendorId) !== String(superVendor._id)) {
       return res
         .status(403)
         .json({ error: "Not authorized to modify this subvendor" });
     }
 
+    // ✅ Merge and save permissions
     subVendor.permissions = { ...subVendor.permissions, ...permissions };
     await subVendor.save();
 
