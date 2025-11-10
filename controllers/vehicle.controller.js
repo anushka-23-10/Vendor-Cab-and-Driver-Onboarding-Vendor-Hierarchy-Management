@@ -56,14 +56,18 @@ export const addVehicle = async (req, res) => {
 export const getVehicles = async (req, res) => {
   try {
     const vendorId = req.user.vendorId;
-    const vehicles = await Vehicle.find({ vendor: vendorId }).populate(
-      "assignedDriver",
-      "name"
-    );
-    res.json({ vehicles });
+    const vehicles = await Vehicle.find({ vendor: vendorId })
+      .populate("assignedDriver", "name licenseNumber")
+      .lean();
+
+    res.json({
+      success: true,
+      count: vehicles.length,
+      vehicles,
+    });
   } catch (err) {
     console.error("❌ getVehicles Error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 };
 

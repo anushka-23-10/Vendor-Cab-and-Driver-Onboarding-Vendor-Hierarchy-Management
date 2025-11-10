@@ -106,9 +106,26 @@
     <section>
       <h3>Add New Vehicle</h3>
       <form id="vehicleForm">
-        <input type="text" id="regNum" placeholder="Registration Number (e.g. KA01AB1234)" required />
-        <input type="text" id="model" placeholder="Model (e.g. Innova Crysta)" required />
-        <input type="number" id="capacity" placeholder="Seating Capacity" min="1" max="60" required />
+        <input
+          type="text"
+          id="regNum"
+          placeholder="Registration Number (e.g. KA01AB1234)"
+          required
+        />
+        <input
+          type="text"
+          id="model"
+          placeholder="Model (e.g. Innova Crysta)"
+          required
+        />
+        <input
+          type="number"
+          id="capacity"
+          placeholder="Seating Capacity"
+          min="1"
+          max="60"
+          required
+        />
         <select id="fuel" required>
           <option value="">Select Fuel Type</option>
           <option value="Petrol">Petrol</option>
@@ -144,97 +161,109 @@
         window.location.href = "index.html";
       }
 
-      const apiBase = "/api/vehicles"; // ✅ adjust if needed (e.g., /api/vendor/vehicles)
+      const apiBase = "/api/vehicles";
 
-      async function loadVendor() {
-        try {
-          const res = await fetch("/api/vendors/me", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-          if (!data.vendor) throw new Error("No vendor data");
-          document.getElementById("vendorName").innerText = data.vendor.name;
-          document.getElementById("vendorRegion").innerText = data.vendor.region || "N/A";
-        } catch (err) {
-          alert("Error loading vendor info");
+      async function verifyLogin() {
+        const res = await fetch("/api/vendors/me", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const data = await res.json();
+        if (!data.vendor) {
+          alert("Session expired. Please log in again.");
+          localStorage.clear();
+          window.location.href = "index.html";
+          return;
         }
+
+        document.getElementById("vendorName").innerText = data.vendor.name;
+        document.getElementById("vendorRegion").innerText =
+          data.vendor.region || "N/A";
       }
 
       async function loadVehicles() {
-        const tbody = document.querySelector("#vehicleTable tbody");
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>`;
-
         try {
-          const res = await fetch(`${apiBase}/my`, {
+          const res = await fetch("/api/vehicles/my", {
             headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
           });
-          const data = await res.json();
 
+          const data = await res.json();
+          console.log("🚗 Vehicle List Response:", data);
+          const vehicles = data.vehicles || [];
+
+          const tbody = document.querySelector("#vehicleTable tbody");
           tbody.innerHTML = "";
-          if (!data.vehicles || data.vehicles.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No vehicles found</td></tr>`;
+
+          if (vehicles.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="4" style="text-align:center;">No vehicles found</td></tr>';
             return;
           }
 
-          data.vehicles.forEach((v) => {
+          vehicles.forEach((v) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${v.registrationNumber}</td>
-              <td>${v.model}</td>
-              <td>${v.fuelType}</td>
-              <td>${v.capacity}</td>
-            `;
+          <td>${v.registrationNumber}</td>
+          <td>${v.model}</td>
+          <td>${v.fuelType}</td>
+          <td>${v.capacity}</td>`;
             tbody.appendChild(tr);
           });
         } catch (err) {
-          console.error(err);
-          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">Failed to load vehicles</td></tr>`;
+          console.error("❌ loadVehicles Error:", err);
         }
       }
 
-      document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const msg = document.getElementById("message");
-        msg.innerText = "Adding vehicle...";
-        msg.className = "";
+      document
+        .getElementById("vehicleForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const msg = document.getElementById("message");
+          msg.innerText = "Adding vehicle...";
+          msg.className = "";
 
-        const payload = {
-          registrationNumber: document.getElementById("regNum").value.trim(),
-          model: document.getElementById("model").value.trim(),
-          capacity: parseInt(document.getElementById("capacity").value),
-          fuelType: document.getElementById("fuel").value,
-        };
+          const payload = {
+            registrationNumber: document.getElementById("regNum").value.trim(),
+            model: document.getElementById("model").value.trim(),
+            capacity: parseInt(document.getElementById("capacity").value),
+            fuelType: document.getElementById("fuel").value,
+          };
 
-        try {
-          const res = await fetch(`${apiBase}/add`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(payload),
-          });
+          try {
+            const res = await fetch(`${apiBase}/add`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(payload),
+            });
 
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Failed to add vehicle");
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to add vehicle");
 
-          msg.innerText = "✅ Vehicle added successfully!";
-          msg.className = "success";
-          e.target.reset();
-          loadVehicles();
-        } catch (err) {
-          console.error(err);
-          msg.innerText = "❌ " + err.message;
-          msg.className = "error";
-        }
-      });
+            msg.innerText = "✅ Vehicle added successfully!";
+            msg.className = "success";
+            e.target.reset();
+            await loadVehicles();
+          } catch (err) {
+            console.error(err);
+            msg.innerText = "❌ " + err.message;
+            msg.className = "error";
+          }
+        });
 
       document.getElementById("backBtn").addEventListener("click", () => {
         window.location.href = "sub-dashboard.html";
       });
 
-      loadVendor();
-      loadVehicles();
+      async function initFleetDashboard() {
+        await verifyLogin();
+        await loadVehicles();
+      }
+
+      document.addEventListener("DOMContentLoaded", initFleetDashboard);
     </script>
   </body>
 </html>

@@ -1,4 +1,3 @@
-// routes/driver.routes.js
 import express from "express";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
