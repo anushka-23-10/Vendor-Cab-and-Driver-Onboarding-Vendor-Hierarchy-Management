@@ -25,6 +25,11 @@
         margin: 0;
       }
 
+      .header-buttons {
+        display: flex;
+        gap: 10px;
+      }
+
       header button {
         background: white;
         color: #007bff;
@@ -125,10 +130,16 @@
   <body>
     <header>
       <h2>SuperVendor Dashboard</h2>
-      <button id="logoutBtn">Logout</button>
+      <div class="header-buttons">
+        <button id="complianceBtn">Compliance Check Dashboard</button>
+        <button id="logoutBtn">Logout</button>
+      </div>
     </header>
 
-    <section id="vendorInfo" style="background: #eef3ff; padding: 10px; border-radius: 8px;">
+    <section
+      id="vendorInfo"
+      style="background: #eef3ff; padding: 10px; border-radius: 8px"
+    >
       <b>Logged in as:</b> <span id="vendorName">Loading...</span> |
       <b>Role:</b> <span id="vendorRole">-</span> |
       <b>Region:</b> <span id="vendorRegion">-</span>
@@ -139,8 +150,18 @@
       <h3>Create SubVendor</h3>
       <form id="createSubForm">
         <input type="text" id="subName" placeholder="SubVendor Name" required />
-        <input type="email" id="subContact" placeholder="Contact Email" required />
-        <input type="text" id="subUsername" placeholder="Username for login" required />
+        <input
+          type="email"
+          id="subContact"
+          placeholder="Contact Email"
+          required
+        />
+        <input
+          type="text"
+          id="subUsername"
+          placeholder="Username for login"
+          required
+        />
         <input type="text" id="subRegion" placeholder="Region" required />
         <label>SubVendor Role:</label>
         <select id="subRole">
@@ -162,6 +183,7 @@
             <th>Contact</th>
             <th>Region</th>
             <th>Role</th>
+            <th>Delegation</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -172,9 +194,15 @@
     <section>
       <h3>📊 Fleet & Compliance Overview</h3>
       <div id="summaryCards">
-        <div class="card green-bg">🟢 Compliant Vendors: <span id="greenCount">0</span></div>
-        <div class="card orange-bg">🟠 Partially Compliant: <span id="orangeCount">0</span></div>
-        <div class="card red-bg">🔴 Non-Compliant: <span id="redCount">0</span></div>
+        <div class="card green-bg">
+          🟢 Compliant Vendors: <span id="greenCount">0</span>
+        </div>
+        <div class="card orange-bg">
+          🟠 Partially Compliant: <span id="orangeCount">0</span>
+        </div>
+        <div class="card red-bg">
+          🔴 Non-Compliant: <span id="redCount">0</span>
+        </div>
       </div>
 
       <table id="overviewTable">
@@ -232,13 +260,19 @@
         tbody.innerHTML = "";
         if (!data.vendors || data.vendors.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="4" style="text-align:center;">No subvendors found</td></tr>';
+            '<tr><td colspan="5" style="text-align:center;">No subvendors found</td></tr>';
           return;
         }
 
         data.vendors.forEach((v) => {
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${v.name}</td><td>${v.contactInfo}</td><td>${v.region}</td><td>${v.role}</td>`;
+          tr.innerHTML = `
+            <td>${v.name}</td>
+            <td>${v.contactInfo}</td>
+            <td>${v.region}</td>
+            <td>${v.role}</td>
+            <td><button>Manage</button></td>
+          `;
           tbody.appendChild(tr);
         });
       }
@@ -323,6 +357,10 @@
         localStorage.clear();
         window.location.href = "index.html";
       });
+
+      document
+        .getElementById("complianceBtn")
+        .addEventListener("click", () => (window.location.href = "super-compliance.html"));
 
       verifyLogin();
       loadSubVendors();

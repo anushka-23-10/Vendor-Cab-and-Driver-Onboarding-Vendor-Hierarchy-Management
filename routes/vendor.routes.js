@@ -33,6 +33,33 @@ router.get(
   authorize(["SuperVendor", "RegionalVendor", "CityVendor"]),
   getMySubVendors
 );
+// 🟣 Set permissions for a subvendor (SuperVendor only)
+router.post(
+  "/set-permissions",
+  authenticate,
+  authorize(["SuperVendor"]),
+  async (req, res) => {
+    try {
+      const { subVendorId, permissions } = req.body;
+
+      if (!subVendorId || !permissions)
+        return res.status(400).json({ error: "Missing required fields" });
+
+      const vendor = await Vendor.findById(subVendorId);
+      if (!vendor)
+        return res.status(404).json({ error: "SubVendor not found" });
+
+      vendor.permissions = { ...vendor.permissions, ...permissions };
+      await vendor.save();
+
+      res.json({ message: "Permissions updated successfully", vendor });
+    } catch (err) {
+      console.error("❌ set-permissions:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
+
 router.get("/me", authenticate, getMyVendor);
 
 router.get(
