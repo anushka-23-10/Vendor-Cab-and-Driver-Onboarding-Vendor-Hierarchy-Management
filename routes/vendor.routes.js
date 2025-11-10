@@ -6,10 +6,11 @@ import {
   activateVendor,
   getMyVendor,
   getMySubVendors,
+  getVendorFleetOverview,
 } from "../controllers/vendor.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
-import { getVendorFleetOverview } from "../controllers/vendor.controller.js";
+import Vendor from "../models/vendor.model.js"; // ✅ Correct import (uppercase)
 
 const router = express.Router();
 
@@ -27,13 +28,38 @@ router.post(
   authorize(["SuperVendor", "RegionalVendor", "CityVendor"]),
   createSubVendor
 );
+
 router.get(
   "/my-subvendors",
   authenticate,
   authorize(["SuperVendor", "RegionalVendor", "CityVendor"]),
   getMySubVendors
 );
-// 🟣 Set permissions for a subvendor (SuperVendor only)
+
+// 🟣 Vendor Info (for self)
+router.get("/me", authenticate, getMyVendor);
+
+// 🟣 Fleet Overview (SuperVendor only)
+router.get(
+  "/fleet-overview",
+  authenticate,
+  authorize(["SuperVendor"]),
+  getVendorFleetOverview
+);
+
+// 🟣 Get specific SubVendor by ID (for permission viewing)
+router.get("/:id", authenticate, async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) return res.status(404).json({ error: "Vendor not found" });
+    res.json({ vendor });
+  } catch (err) {
+    console.error("❌ Error fetching vendor:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// 🟣 Set / Update SubVendor Permissions (SuperVendor only)
 router.post(
   "/set-permissions",
   authenticate,
@@ -42,17 +68,35 @@ router.post(
     try {
       const { subVendorId, permissions } = req.body;
 
-      if (!subVendorId || !permissions)
+      if (!subVendorId || !permissions) {
         return res.status(400).json({ error: "Missing required fields" });
+      }
 
-      const vendor = await Vendor.findById(subVendorId);
-      if (!vendor)
+      const superVendor = await Vendor.findById(req.user.id);
+      if (!superVendor || superVendor.role !== "SuperVendor") {
+        return res
+          .status(403)
+          .json({ error: "Only SuperVendors can modify permissions" });
+      }
+
+      const subVendor = await Vendor.findById(subVendorId);
+      if (!subVendor)
         return res.status(404).json({ error: "SubVendor not found" });
 
-      vendor.permissions = { ...vendor.permissions, ...permissions };
-      await vendor.save();
+      // Ensure subvendor belongs to this supervendor
+      if (String(subVendor.parentVendorId) !== String(superVendor._id)) {
+        return res
+          .status(403)
+          .json({ error: "Cannot modify a vendor not under your hierarchy" });
+      }
 
-      res.json({ message: "Permissions updated successfully", vendor });
+      subVendor.permissions = { ...subVendor.permissions, ...permissions };
+      await subVendor.save();
+
+      res.json({
+        message: "Permissions updated successfully",
+        permissions: subVendor.permissions,
+      });
     } catch (err) {
       console.error("❌ set-permissions:", err);
       res.status(500).json({ error: "Internal server error" });
@@ -60,12 +104,4 @@ router.post(
   }
 );
 
-router.get("/me", authenticate, getMyVendor);
-
-router.get(
-  "/fleet-overview",
-  authenticate,
-  authorize(["SuperVendor"]),
-  getVendorFleetOverview
-);
 export default router;
