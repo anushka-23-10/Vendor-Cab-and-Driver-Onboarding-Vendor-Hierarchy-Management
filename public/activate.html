@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Activate Account</title>
+  <title>Activate Vendor Account</title>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
@@ -16,7 +16,7 @@
       background: white;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       width: 350px;
     }
     input {
@@ -35,19 +35,20 @@
       border-radius: 5px;
       width: 100%;
       cursor: pointer;
+      font-weight: bold;
     }
-    button:hover {
-      background: #0056b3;
-    }
+    button:hover { background: #0056b3; }
     h2 {
       text-align: center;
       margin-bottom: 10px;
+      color: #007bff;
     }
+    p { text-align: center; margin-top: 10px; }
   </style>
 </head>
 <body>
   <form id="activateForm">
-    <h2>Activate Account</h2>
+    <h2>Activate Vendor Account</h2>
     <input type="text" id="username" placeholder="Username" required />
     <input type="password" id="password" placeholder="New Password" required />
     <button type="submit">Activate</button>
@@ -60,21 +61,27 @@
 
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
-
-      const res = await fetch("/api/auth/activate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
       const msg = document.getElementById("msg");
 
-      if (res.ok) {
-        msg.textContent = "✅ Account activated successfully! You can now log in.";
-        msg.style.color = "green";
-      } else {
-        msg.textContent = data.error || "Activation failed";
+      try {
+        const res = await fetch("/api/vendors/activate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.textContent = data.message || "✅ Account activated successfully!";
+          msg.style.color = "green";
+        } else {
+          msg.textContent = data.error || "❌ Activation failed";
+          msg.style.color = "red";
+        }
+      } catch (err) {
+        console.error("❌ Activation error:", err);
+        msg.textContent = "Server error. Please try again.";
         msg.style.color = "red";
       }
     });

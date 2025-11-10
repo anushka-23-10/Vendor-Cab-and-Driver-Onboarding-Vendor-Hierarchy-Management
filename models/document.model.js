@@ -20,7 +20,7 @@ const documentSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["License", "Registration", "Insurance", "Pollution", "Permit"],
+      enum: ["License", "Registration Certificate", "Insurance", "Pollution", "Permit"],
     },
     issueDate: { type: Date },
     expiryDate: { type: Date },

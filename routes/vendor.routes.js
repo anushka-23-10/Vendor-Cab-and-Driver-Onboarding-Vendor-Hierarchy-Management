@@ -7,6 +7,7 @@ import {
   getMyVendor,
   getMySubVendors,
   getVendorFleetOverview,
+  activateVendor,
 } from "../controllers/vendor.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
@@ -14,11 +15,14 @@ import Vendor from "../models/vendor.model.js";
 
 const router = express.Router();
 
+// ✅ SuperVendor registration and login
 router.post("/register", registerSuperVendor);
 router.post("/login", loginVendor);
 
+// ✅ Vendor self-info
 router.get("/me", authenticate, getMyVendor);
 
+// ✅ Subvendor management
 router.post(
   "/create-subvendor",
   authenticate,
@@ -33,6 +37,7 @@ router.get(
   getMySubVendors
 );
 
+// ✅ Fleet & compliance overview
 router.get(
   "/fleet-overview",
   authenticate,
@@ -40,6 +45,7 @@ router.get(
   getVendorFleetOverview
 );
 
+// ✅ Fetch specific vendor details
 router.get("/:id", authenticate, async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.params.id).select("-password");
@@ -51,11 +57,11 @@ router.get("/:id", authenticate, async (req, res) => {
   }
 });
 
+// ✅ Permissions management
 router.post("/set-permissions", authenticate, async (req, res) => {
   try {
     const { subVendorId, permissions } = req.body;
 
-    // Find the SuperVendor making the request
     const superVendor = await Vendor.findById(req.user.vendorId);
     if (!superVendor || superVendor.role !== "SuperVendor") {
       return res
@@ -63,20 +69,16 @@ router.post("/set-permissions", authenticate, async (req, res) => {
         .json({ error: "Only SuperVendors can modify permissions" });
     }
 
-    // Find the subvendor being updated
     const subVendor = await Vendor.findById(subVendorId);
-    if (!subVendor) {
+    if (!subVendor)
       return res.status(404).json({ error: "SubVendor not found" });
-    }
 
-    // ✅ FIX: use correct field name (parentVendorId)
     if (String(subVendor.parentVendorId) !== String(superVendor._id)) {
       return res
         .status(403)
         .json({ error: "Not authorized to modify this subvendor" });
     }
 
-    // ✅ Merge and save permissions
     subVendor.permissions = { ...subVendor.permissions, ...permissions };
     await subVendor.save();
 
@@ -89,5 +91,8 @@ router.post("/set-permissions", authenticate, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+// ✅ Public activation route (no token required)
+router.post("/activate", activateVendor);
 
 export default router;

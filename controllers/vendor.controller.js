@@ -10,6 +10,8 @@ import Document from "../models/document.model.js";
 // ================================
 // 🟢 Register SuperVendor
 // ================================
+// controllers/vendor.controller.js
+
 export const registerSuperVendor = async (req, res) => {
   try {
     const { name, username, password, contactInfo, region } = req.body;
@@ -18,23 +20,29 @@ export const registerSuperVendor = async (req, res) => {
     if (existing)
       return res.status(400).json({ error: "Username already exists" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
+    // ❌ REMOVE manual bcrypt.hash — schema does it automatically
     const newVendor = new Vendor({
       name,
       username,
-      password: hashedPassword,
+      password, // pass plain password here
       contactInfo,
       role: "SuperVendor",
       region,
       isActive: true,
     });
 
-    await newVendor.save();
+    await newVendor.save(); // schema pre-save will hash it
+
+    const token = jwt.sign(
+      { vendorId: newVendor._id, role: newVendor.role },
+      process.env.JWT_SECRET || "secretkey",
+      { expiresIn: "7d" }
+    );
 
     res.status(201).json({
       message: "SuperVendor registered successfully!",
       vendor: newVendor,
+      token,
     });
   } catch (err) {
     console.error("❌ registerSuperVendor Error:", err);
@@ -74,25 +82,6 @@ export const loginVendor = async (req, res) => {
 };
 
 // ================================
-// 🟠 Activate Vendor (Admin use)
-// ================================
-export const activateVendor = async (req, res) => {
-  try {
-    const { vendorId } = req.body;
-    const vendor = await Vendor.findById(vendorId);
-    if (!vendor) return res.status(404).json({ error: "Vendor not found" });
-
-    vendor.isActive = true;
-    await vendor.save();
-
-    res.json({ message: "Vendor activated successfully" });
-  } catch (err) {
-    console.error("❌ activateVendor Error:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// ================================
 // 🧩 Create SubVendor
 // ================================
 export const createSubVendor = async (req, res) => {
@@ -115,7 +104,7 @@ export const createSubVendor = async (req, res) => {
       role,
       region,
       parentVendorId,
-      isActive: true,
+      isActive: false,
     });
 
     await subVendor.save();
@@ -160,62 +149,21 @@ export const getMySubVendors = async (req, res) => {
 };
 
 // ================================
-// ⚙️ Set or Update Permissions
-// ================================
-export const setPermissions = async (req, res) => {
-  try {
-    const { subVendorId, permissions } = req.body;
-    const superVendorId = req.user.vendorId;
-
-    const superVendor = await Vendor.findById(superVendorId);
-    if (!superVendor || superVendor.role !== "SuperVendor") {
-      return res.status(403).json({
-        error: "Unauthorized. Only SuperVendors can modify permissions.",
-      });
-    }
-
-    const subVendor = await Vendor.findById(subVendorId);
-    if (!subVendor)
-      return res.status(404).json({ error: "SubVendor not found" });
-
-    if (String(subVendor.parentVendorId) !== String(superVendorId)) {
-      return res
-        .status(403)
-        .json({ error: "Cannot modify vendor outside your hierarchy." });
-    }
-
-    subVendor.permissions = { ...subVendor.permissions, ...permissions };
-    await subVendor.save();
-
-    res.json({
-      message: "Permissions updated successfully",
-      permissions: subVendor.permissions,
-    });
-  } catch (err) {
-    console.error("❌ setPermissions Error:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// ================================
-// 📊 Fleet & Compliance Overview (SuperVendor)
+// 📊 Fleet & Compliance Overview
 // ================================
 export const getVendorFleetOverview = async (req, res) => {
   try {
     if (req.user.role !== "SuperVendor")
       return res.status(403).json({ error: "Access denied" });
 
-    const superVendorId = req.user.id;
-
-    // 🔹 Find subvendors belonging to this SuperVendor
-    const subvendors = await Vendor.find({ parentVendor: superVendorId });
+    const superVendorId = req.user.vendorId;
+    const subvendors = await Vendor.find({ parentVendorId: superVendorId });
 
     const overview = [];
 
     for (const v of subvendors) {
       const vendorId = v._id;
 
-      // ⚙️ Count related data
       const [fleetCount, driverCount, totalDocs, approved, pending, rejected] =
         await Promise.all([
           Vehicle.countDocuments({ vendor: vendorId }),
@@ -226,7 +174,6 @@ export const getVendorFleetOverview = async (req, res) => {
           Document.countDocuments({ vendorId, status: "Rejected" }),
         ]);
 
-      // 🧮 Calculate compliance rate
       const complianceRate =
         totalDocs === 0 ? 0 : ((approved / totalDocs) * 100).toFixed(1);
 
@@ -248,6 +195,48 @@ export const getVendorFleetOverview = async (req, res) => {
     res.json({ overview });
   } catch (err) {
     console.error("❌ getVendorFleetOverview error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// ================================
+// 🟢 Activate Vendor (Set Password)
+// ================================
+export const activateVendor = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username and password are required" });
+    }
+
+    // Find vendor by username
+    const vendor = await Vendor.findOne({ username });
+    if (!vendor) {
+      return res.status(404).json({ error: "Vendor not found" });
+    }
+
+    // If already active, prevent reactivation
+    if (vendor.isActive) {
+      return res
+        .status(400)
+        .json({ error: "Account is already active. Please log in." });
+    }
+
+    // Hash and update new password
+    vendor.password = password; // ✅ will be hashed automatically by pre('save')
+    vendor.isActive = true;
+
+    await vendor.save();
+
+    res.json({
+      message: "Account activated successfully! You can now log in.",
+    });
+  } catch (err) {
+    console.error("❌ activateVendor Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
