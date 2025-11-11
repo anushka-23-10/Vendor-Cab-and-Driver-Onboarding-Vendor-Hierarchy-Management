@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="1376px" preserveAspectRatio="none" style="width:1075px;height:1376px;background:#F5F5F5;" version="1.1" viewBox="0 0 1075 1376" width="1075px" zoomAndPan="magnify"><defs/><g><rect fill="#F5F5F5" height="26.2969" id="_title" style="stroke:none;stroke-width:1.0;" width="402" x="329.75" y="5"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="392" x="334.75" y="22.9951">Vendor Management System - UML Class Diagram</text><!--MD5=[ed5877e6822965b3d42976b0def1bd7d]
+class IManageable--><g id="elem_IManageable"><rect codeLine="6" fill="#F1F1F1" height="80.5938" id="IManageable" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="119" x="512.5" y="218.2969"/><ellipse cx="527.5" cy="234.2969" fill="#B4A7E5" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M523.4219,230.0625 L523.4219,227.9063 L530.8125,227.9063 L530.8125,230.0625 L528.3438,230.0625 L528.3438,238.1406 L530.8125,238.1406 L530.8125,240.2969 L523.4219,240.2969 L523.4219,238.1406 L525.8906,238.1406 L525.8906,230.0625 L523.4219,230.0625 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacing" textLength="87" x="541.5" y="239.1436">IManageable</text><line style="stroke:#181818;stroke-width:0.5;" x1="513.5" x2="630.5" y1="250.2969" y2="250.2969"/><line style="stroke:#181818;stroke-width:0.5;" x1="513.5" x2="630.5" y1="258.2969" y2="258.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="75" x="518.5" y="275.292">+activate()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="518.5" y="291.5889">+deactivate()</text></g><!--MD5=[8a3789a9171102629c700618f02d7789]
+class IDocumentHandler--><g id="elem_IDocumentHandler"><rect codeLine="11" fill="#F1F1F1" height="96.8906" id="IDocumentHandler" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="163" x="905.5" y="416.7969"/><ellipse cx="921.4" cy="432.7969" fill="#B4A7E5" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M917.3219,428.5625 L917.3219,426.4063 L924.7125,426.4063 L924.7125,428.5625 L922.2438,428.5625 L922.2438,436.6406 L924.7125,436.6406 L924.7125,438.7969 L917.3219,438.7969 L917.3219,436.6406 L919.7906,436.6406 L919.7906,428.5625 L917.3219,428.5625 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacing" textLength="129" x="935.6" y="437.6436">IDocumentHandler</text><line style="stroke:#181818;stroke-width:0.5;" x1="906.5" x2="1067.5" y1="448.7969" y2="448.7969"/><line style="stroke:#181818;stroke-width:0.5;" x1="906.5" x2="1067.5" y1="456.7969" y2="456.7969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="142" x="911.5" y="473.792">+uploadDocument()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="151" x="911.5" y="490.0889">+approveDocument()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="134" x="911.5" y="506.3857">+rejectDocument()</text></g><!--MD5=[7d75efcc7d06b347edea0516f6aac1d8]
+class BaseEntity--><g id="elem_BaseEntity"><rect codeLine="18" fill="#F1F1F1" height="96.8906" id="BaseEntity" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="133" x="622.5" y="44.2969"/><ellipse cx="650.1" cy="60.2969" fill="#ADD1B2" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M653.0688,65.9375 Q652.4906,66.2344 651.85,66.375 Q651.2094,66.5313 650.5063,66.5313 Q648.0063,66.5313 646.6781,64.8906 Q645.3656,63.2344 645.3656,60.1094 Q645.3656,56.9844 646.6781,55.3281 Q648.0063,53.6719 650.5063,53.6719 Q651.2094,53.6719 651.85,53.8281 Q652.5063,53.9844 653.0688,54.2813 L653.0688,57 Q652.4438,56.4219 651.85,56.1563 Q651.2563,55.875 650.6313,55.875 Q649.2875,55.875 648.6,56.9531 Q647.9125,58.0156 647.9125,60.1094 Q647.9125,62.2031 648.6,63.2813 Q649.2875,64.3438 650.6313,64.3438 Q651.2563,64.3438 651.85,64.0781 Q652.4438,63.7969 653.0688,63.2188 L653.0688,65.9375 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="73" x="666.9" y="65.1436">BaseEntity</text><line style="stroke:#181818;stroke-width:0.5;" x1="623.5" x2="754.5" y1="76.2969" y2="76.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="92" x="628.5" y="93.292">+ObjectId _id</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="116" x="628.5" y="109.5889">+Date createdAt</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="121" x="628.5" y="125.8857">+Date updatedAt</text><line style="stroke:#181818;stroke-width:0.5;" x1="623.5" x2="754.5" y1="133.1875" y2="133.1875"/></g><!--MD5=[3fd616f346a44cd59a91eb10b19e157c]
+class User--><g id="elem_User"><rect codeLine="25" fill="#F1F1F1" height="113.1875" id="User" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="145" x="332.5" y="202.2969"/><ellipse cx="384.75" cy="218.2969" fill="#ADD1B2" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M387.7188,223.9375 Q387.1406,224.2344 386.5,224.375 Q385.8594,224.5313 385.1563,224.5313 Q382.6563,224.5313 381.3281,222.8906 Q380.0156,221.2344 380.0156,218.1094 Q380.0156,214.9844 381.3281,213.3281 Q382.6563,211.6719 385.1563,211.6719 Q385.8594,211.6719 386.5,211.8281 Q387.1563,211.9844 387.7188,212.2813 L387.7188,215 Q387.0938,214.4219 386.5,214.1563 Q385.9063,213.875 385.2813,213.875 Q383.9375,213.875 383.25,214.9531 Q382.5625,216.0156 382.5625,218.1094 Q382.5625,220.2031 383.25,221.2813 Q383.9375,222.3438 385.2813,222.3438 Q385.9063,222.3438 386.5,222.0781 Q387.0938,221.7969 387.7188,221.2188 L387.7188,223.9375 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="32" x="405.25" y="223.1436">User</text><line style="stroke:#181818;stroke-width:0.5;" x1="333.5" x2="476.5" y1="234.2969" y2="234.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="126" x="338.5" y="251.292">+String username</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="123" x="338.5" y="267.5889">+String password</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="133" x="338.5" y="283.8857">+String contactInfo</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="82" x="338.5" y="300.1826">+String role</text><line style="stroke:#181818;stroke-width:0.5;" x1="333.5" x2="476.5" y1="307.4844" y2="307.4844"/></g><!--MD5=[82eab7c35110598490f7b08b869827ab]
+class Vendor--><g id="elem_Vendor"><rect codeLine="32" fill="#F1F1F1" height="178.375" id="Vendor" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="196" x="307" y="376.2969"/><ellipse cx="375.75" cy="392.2969" fill="#ADD1B2" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M378.7188,397.9375 Q378.1406,398.2344 377.5,398.375 Q376.8594,398.5313 376.1563,398.5313 Q373.6563,398.5313 372.3281,396.8906 Q371.0156,395.2344 371.0156,392.1094 Q371.0156,388.9844 372.3281,387.3281 Q373.6563,385.6719 376.1563,385.6719 Q376.8594,385.6719 377.5,385.8281 Q378.1563,385.9844 378.7188,386.2813 L378.7188,389 Q378.0938,388.4219 377.5,388.1563 Q376.9063,387.875 376.2813,387.875 Q374.9375,387.875 374.25,388.9531 Q373.5625,390.0156 373.5625,392.1094 Q373.5625,394.2031 374.25,395.2813 Q374.9375,396.3438 376.2813,396.3438 Q376.9063,396.3438 377.5,396.0781 Q378.0938,395.7969 378.7188,395.2188 L378.7188,397.9375 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="50" x="396.25" y="397.1436">Vendor</text><line style="stroke:#181818;stroke-width:0.5;" x1="308" x2="502" y1="408.2969" y2="408.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="95" x="313" y="425.292">+String name</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="100" x="313" y="441.5889">+String region</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="125" x="313" y="457.8857">+Boolean isActive</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="184" x="313" y="474.1826">+Permissions permissions</text><line style="stroke:#181818;stroke-width:0.5;" x1="308" x2="502" y1="481.4844" y2="481.4844"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="125" x="313" y="498.4795">+addSubVendor()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="155" x="313" y="514.7764">+approveSubVendor()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="155" x="313" y="531.0732">+updatePermissions()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="143" x="313" y="547.3701">+deactivateVendor()</text></g><!--MD5=[eee9d396a8aca12c6c152931e8dc1ab6]
+class Driver--><g id="elem_Driver"><rect codeLine="44" fill="#F1F1F1" height="162.0781" id="Driver" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="172" x="478" y="1207.2969"/><ellipse cx="539.75" cy="1223.2969" fill="#ADD1B2" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M542.7188,1228.9375 Q542.1406,1229.2344 541.5,1229.375 Q540.8594,1229.5313 540.1563,1229.5313 Q537.6563,1229.5313 536.3281,1227.8906 Q535.0156,1226.2344 535.0156,1223.1094 Q535.0156,1219.9844 536.3281,1218.3281 Q537.6563,1216.6719 540.1563,1216.6719 Q540.8594,1216.6719 541.5,1216.8281 Q542.1563,1216.9844 542.7188,1217.2813 L542.7188,1220 Q542.0938,1219.4219 541.5,1219.1563 Q540.9063,1218.875 540.2813,1218.875 Q538.9375,1218.875 538.25,1219.9531 Q537.5625,1221.0156 537.5625,1223.1094 Q537.5625,1225.2031 538.25,1226.2813 Q538.9375,1227.3438 540.2813,1227.3438 Q540.9063,1227.3438 541.5,1227.0781 Q542.0938,1226.7969 542.7188,1226.2188 L542.7188,1228.9375 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="560.25" y="1228.1436">Driver</text><line style="stroke:#181818;stroke-width:0.5;" x1="479" x2="649" y1="1239.2969" y2="1239.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="95" x="484" y="1256.292">+String name</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="160" x="484" y="1272.5889">+String licenseNumber</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="133" x="484" y="1288.8857">+String contactInfo</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="125" x="484" y="1305.1826">+Boolean isActive</text><line style="stroke:#181818;stroke-width:0.5;" x1="479" x2="649" y1="1312.4844" y2="1312.4844"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="135" x="484" y="1329.4795">+assignToVehicle()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="124" x="484" y="1345.7764">+updateLicense()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="133" x="484" y="1362.0732">+deactivateDriver()</text></g><!--MD5=[3aa0d89c6bfdcbf7f32042cedac57549]
+class Vehicle--><g id="elem_Vehicle"><rect codeLine="56" fill="#F1F1F1" height="178.375" id="Vehicle" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="201" x="617.5" y="952.2969"/><ellipse cx="688.75" cy="968.2969" fill="#ADD1B2" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M691.7188,973.9375 Q691.1406,974.2344 690.5,974.375 Q689.8594,974.5313 689.1563,974.5313 Q686.6563,974.5313 685.3281,972.8906 Q684.0156,971.2344 684.0156,968.1094 Q684.0156,964.9844 685.3281,963.3281 Q686.6563,961.6719 689.1563,961.6719 Q689.8594,961.6719 690.5,961.8281 Q691.1563,961.9844 691.7188,962.2813 L691.7188,965 Q691.0938,964.4219 690.5,964.1563 Q689.9063,963.875 689.2813,963.875 Q687.9375,963.875 687.25,964.9531 Q686.5625,966.0156 686.5625,968.1094 Q686.5625,970.2031 687.25,971.2813 Q687.9375,972.3438 689.2813,972.3438 Q689.9063,972.3438 690.5,972.0781 Q691.0938,971.7969 691.7188,971.2188 L691.7188,973.9375 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="50" x="709.25" y="973.1436">Vehicle</text><line style="stroke:#181818;stroke-width:0.5;" x1="618.5" x2="817.5" y1="984.2969" y2="984.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="189" x="623.5" y="1001.292">+String registrationNumber</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="99" x="623.5" y="1017.5889">+String model</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="127" x="623.5" y="1033.8857">+Number capacity</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="115" x="623.5" y="1050.1826">+String fuelType</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="125" x="623.5" y="1066.4795">+Boolean isActive</text><line style="stroke:#181818;stroke-width:0.5;" x1="618.5" x2="817.5" y1="1073.7813" y2="1073.7813"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="107" x="623.5" y="1090.7764">+assignDriver()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="168" x="623.5" y="1107.0732">+updateVehicleDetails()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="143" x="623.5" y="1123.3701">+deactivateVehicle()</text></g><!--MD5=[59b530d44ae785dc18db921986a9c15c]
+class Document--><g id="elem_Document"><rect codeLine="68" fill="#F1F1F1" height="243.5625" id="Document" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="163" x="803.5" y="631.2969"/><ellipse cx="844.6" cy="647.2969" fill="#ADD1B2" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M847.5688,652.9375 Q846.9906,653.2344 846.35,653.375 Q845.7094,653.5313 845.0063,653.5313 Q842.5063,653.5313 841.1781,651.8906 Q839.8656,650.2344 839.8656,647.1094 Q839.8656,643.9844 841.1781,642.3281 Q842.5063,640.6719 845.0063,640.6719 Q845.7094,640.6719 846.35,640.8281 Q847.0063,640.9844 847.5688,641.2813 L847.5688,644 Q846.9438,643.4219 846.35,643.1563 Q845.7563,642.875 845.1313,642.875 Q843.7875,642.875 843.1,643.9531 Q842.4125,645.0156 842.4125,647.1094 Q842.4125,649.2031 843.1,650.2813 Q843.7875,651.3438 845.1313,651.3438 Q845.7563,651.3438 846.35,651.0781 Q846.9438,650.7969 847.5688,650.2188 L847.5688,652.9375 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="73" x="864.4" y="652.1436">Document</text><line style="stroke:#181818;stroke-width:0.5;" x1="804.5" x2="965.5" y1="663.2969" y2="663.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="133" x="809.5" y="680.292">+ObjectId vendorId</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="128" x="809.5" y="696.5889">+ObjectId ownerId</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="133" x="809.5" y="712.8857">+String ownerType</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="116" x="809.5" y="729.1826">+String docType</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="106" x="809.5" y="745.4795">+String filePath</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="99" x="809.5" y="761.7764">+Enum status</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="122" x="809.5" y="778.0732">+Date expiryDate</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="129" x="809.5" y="794.3701">+Date uploadDate</text><line style="stroke:#181818;stroke-width:0.5;" x1="804.5" x2="965.5" y1="801.6719" y2="801.6719"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="142" x="809.5" y="818.667">+uploadDocument()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="151" x="809.5" y="834.9639">+approveDocument()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="134" x="809.5" y="851.2607">+rejectDocument()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="104" x="809.5" y="867.5576">+checkExpiry()</text></g><!--MD5=[4c3ceef50c2dcf6ab3f0f048f842acce]
+class Permissions--><g id="elem_Permissions"><rect codeLine="84" fill="#F1F1F1" height="145.7813" id="Permissions" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="232" x="7" y="680.2969"/><ellipse cx="76.75" cy="696.2969" fill="#ADD1B2" rx="11" ry="11" style="stroke:#181818;stroke-width:1.0;"/><path d="M79.7188,701.9375 Q79.1406,702.2344 78.5,702.375 Q77.8594,702.5313 77.1563,702.5313 Q74.6563,702.5313 73.3281,700.8906 Q72.0156,699.2344 72.0156,696.1094 Q72.0156,692.9844 73.3281,691.3281 Q74.6563,689.6719 77.1563,689.6719 Q77.8594,689.6719 78.5,689.8281 Q79.1563,689.9844 79.7188,690.2813 L79.7188,693 Q79.0938,692.4219 78.5,692.1563 Q77.9063,691.875 77.2813,691.875 Q75.9375,691.875 75.25,692.9531 Q74.5625,694.0156 74.5625,696.1094 Q74.5625,698.2031 75.25,699.2813 Q75.9375,700.3438 77.2813,700.3438 Q77.9063,700.3438 78.5,700.0781 Q79.0938,699.7969 79.7188,699.2188 L79.7188,701.9375 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="97.25" y="701.1436">Permissions</text><line style="stroke:#181818;stroke-width:0.5;" x1="8" x2="238" y1="712.2969" y2="712.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="184" x="13" y="729.292">+Boolean fleetOnboarding</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="192" x="13" y="745.5889">+Boolean driverOnboarding</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="211" x="13" y="761.8857">+Boolean complianceTracking</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="220" x="13" y="778.1826">+Boolean bookingManagement</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="141" x="13" y="794.4795">+Boolean payments</text><line style="stroke:#181818;stroke-width:0.5;" x1="8" x2="238" y1="801.7813" y2="801.7813"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="147" x="13" y="818.7764">+updatePermission()</text></g><!--MD5=[399725f92b64944fafc4dbd2678d6279]
+reverse link BaseEntity to User--><g id="link_BaseEntity_User"><path codeLine="95" d="M604.34,140.1169 C570.19,159.0769 530.54,181.4169 495,202.2969 C489.3,205.6469 483.43,209.1469 477.54,212.6969 " fill="none" id="BaseEntity-backto-User" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="601.27,133.8169,622.16,130.2569,608.05,146.0669,601.27,133.8169" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[a3ea4dd44e9746700a3eebba88e433ae]
+reverse link User to Vendor--><g id="link_User_Vendor"><path codeLine="96" d="M405,335.4769 C405,348.6669 405,362.4969 405,375.9969 " fill="none" id="User-backto-Vendor" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="398,335.4069,405,315.4069,412,335.4069,398,335.4069" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[0cb849dc3d89e3fa685691594731d4fa]
+reverse link Vendor to Driver--><g id="link_Vendor_Driver"><path codeLine="97" d="M352.96,573.6069 C351.88,577.1769 350.88,580.7469 350,584.2969 C286.19,840.0069 205.28,957.0269 350,1177.2969 C379.13,1221.6369 432.03,1249.0569 477.94,1265.4269 " fill="none" id="Vendor-backto-Driver" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="346.4,571.1669,359.52,554.5269,359.64,575.7169,346.4,571.1669" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[21643899267a7017eba33e583e4717af]
+link Vendor to Driver--><g id="link_Vendor_Driver"><path codeLine="110" d="M409.26,554.3169 C414.36,637.5869 425,765.7869 446,875.2969 C468.05,990.2869 507.58,1119.5869 534.77,1202.1569 " fill="none" id="Vendor-to-Driver" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="536.38,1207.0369,537.3464,1197.2355,534.8074,1202.2906,529.7524,1199.7516,536.38,1207.0369" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#000000" points="461.951,918.772,463.1159,909.3331,457.3453,910.451,461.951,918.772" style="stroke:#000000;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="60" x="470" y="918.3638">manages</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="401.2823" y="574.6681">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="23" x="509.8959" y="1196.201">0..*</text></g><!--MD5=[1e0d7a08d817aba1b61b0e85ac9d3b84]
+reverse link BaseEntity to Vehicle--><g id="link_BaseEntity_Vehicle"><path codeLine="98" d="M692.58,161.6569 C699.73,300.9669 715.56,629.3669 721,905.2969 C721.3,920.4169 721.26,936.4869 721.02,952.0669 " fill="none" id="BaseEntity-backto-Vehicle" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="685.57,161.6769,691.53,141.3369,699.55,160.9569,685.57,161.6769" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[40cb1a29e5fbd2c0791e7fb5fea51f43]
+reverse link BaseEntity to Document--><g id="link_BaseEntity_Document"><path codeLine="99" d="M772.36,135.1769 C785.81,145.2769 798.19,157.2869 807,171.2969 C853.78,245.6469 872.94,483.9069 880.45,631.2169 " fill="none" id="BaseEntity-backto-Document" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="768.22,140.8369,755.6,123.8169,776.08,129.2469,768.22,140.8369" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[f6ce09f3b4713c2d4955bd4ae3e18fd4]
+reverse link BaseEntity to Permissions--><g id="link_BaseEntity_Permissions"><path codeLine="100" d="M602.06,98.3969 C519.2,107.1069 395.48,131.9469 315,202.2969 C172.98,326.4269 135.99,561.6069 126.37,680.1469 " fill="none" id="BaseEntity-backto-Permissions" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="601.62,91.4069,622.19,96.5169,602.93,105.3469,601.62,91.4069" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[ccdb8f6ccf8f2139132563848a62cdfa]
+reverse link IManageable to Vendor--><g id="link_IManageable_Vendor"><path codeLine="103" d="M526.57,315.4269 C511.25,334.1869 493.76,355.6069 476.91,376.2369 " fill="none" id="IManageable-backto-Vendor" style="stroke:#181818;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="none" points="521.33,310.7769,539.4,299.7169,532.18,319.6269,521.33,310.7769" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[465770bc796eae8986b747310e6388a9]
+reverse link IManageable to Vehicle--><g id="link_IManageable_Vehicle"><path codeLine="104" d="M584.7,319.1769 C586.52,327.9269 588.33,336.8469 590,345.2969 C632.96,563.0169 679.11,820.0269 702.5,952.1169 " fill="none" id="IManageable-backto-Vehicle" style="stroke:#181818;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="none" points="577.8,320.3569,580.54,299.3369,591.5,317.4769,577.8,320.3569" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[8839c48e098d7233acb0c85fbbcc548d]
+reverse link IManageable to Driver--><g id="link_IManageable_Driver"><path codeLine="105" d="M568.43,319.5369 C566.3,360.3069 564,415.5469 564,464.2969 C564,464.2969 564,464.2969 564,1042.2969 C564,1097.2769 564,1159.1869 564,1207.0269 " fill="none" id="IManageable-backto-Driver" style="stroke:#181818;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="none" points="561.45,318.9569,569.53,299.3669,575.43,319.7169,561.45,318.9569" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[5fe47f0230874739058c9fa16fce3ca6]
+reverse link IDocumentHandler to Document--><g id="link_IDocumentHandler_Document"><path codeLine="106" d="M963.2,533.0469 C952.76,562.2969 940.18,597.5769 928.19,631.1969 " fill="none" id="IDocumentHandler-backto-Document" style="stroke:#181818;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="none" points="956.73,530.3269,970.04,513.8469,969.92,535.0369,956.73,530.3269" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[74c495d92b9059851e964515727b4adc]
+link Vendor to Vehicle--><g id="link_Vendor_Vehicle"><path codeLine="109" d="M428.02,554.6969 C452.89,640.8069 497.77,773.2869 562,875.2969 C578.08,900.8369 598.5,925.8669 619.22,948.3969 " fill="none" id="Vendor-to-Vehicle" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="622.82,952.2769,619.6396,942.9556,619.4227,948.6083,613.77,948.3914,622.82,952.2769" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#000000" points="569.1843,757.8609,567.8765,748.4407,562.5892,751.0085,569.1843,757.8609" style="stroke:#000000;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="32" x="576" y="757.8638">owns</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="421.5951" y="574.7783">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="23" x="590.9856" y="941.3407">0..*</text></g><!--MD5=[938ae9671fe8b468fa0ba4b88d3cd235]
+link Vendor to Document--><g id="link_Vendor_Document"><path codeLine="111" d="M503,524.6869 C590.01,576.5369 715.9,651.5369 799.05,701.0869 " fill="none" id="Vendor-to-Document" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="803.48,703.7269,797.789,695.6887,799.1825,701.1712,793.7,702.5647,803.48,703.7269" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#000000" points="639.2953,595.4226,633.0294,588.268,630.0207,593.3175,639.2953,595.4226" style="stroke:#000000;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="50" x="644" y="597.3638">uploads</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="511.1281" y="525.8791">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="23" x="772.4861" y="695.9138">0..*</text></g><!--MD5=[7227457bb092ac318691b8b1f8f39355]
+link Vehicle to Driver--><g id="link_Vehicle_Driver"><path codeLine="112" d="M662.62,1130.3969 C647.85,1153.9069 631.92,1179.2469 617.26,1202.5669 " fill="none" id="Vehicle-to-Driver" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="614.54,1206.8969,622.7153,1201.4047,617.2003,1202.6633,615.9416,1197.1483,614.54,1206.8969" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#000000" points="643.3393,1173.0966,650.6408,1167.0024,645.6643,1163.8746,643.3393,1173.0966" style="stroke:#000000;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="48" x="655" y="1173.3638">assigns</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="649.517" y="1150.7549">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="23" x="594.895" y="1196.3263">0..*</text></g><!--MD5=[a520d0118f03a4ccc582c55b346695db]
+link Vendor to Permissions--><g id="link_Vendor_Permissions"><path codeLine="113" d="M306.83,492.4869 C257.19,510.5469 199.99,539.5569 164,584.2969 C143.46,609.8369 132.98,644.1369 127.72,675.0869 " fill="none" id="Vendor-to-Permissions" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="126.92,680.0269,132.3066,671.7816,127.7189,675.0911,124.4093,670.5034,126.92,680.0269" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#000000" points="165.4987,596.4328,173.9307,592.0335,169.7345,587.9175,165.4987,596.4328" style="stroke:#000000;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="100" x="178" y="597.3638">hasPermissions</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="291.0076" y="491.052">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="118.9121" y="669.1603">1</text></g><!--MD5=[06fc4169b69e8981dbe272261c69611e]
+link Document to Driver--><g id="link_Document_Driver"><path codeLine="114" d="M925.31,875.5569 C927.59,885.5369 929.55,895.5369 931,905.2969 C945.56,1003.0669 902.06,1057.6369 836,1130.2969 C786.32,1184.9369 713.07,1225.7069 655.1,1251.9869 " fill="none" id="Document-to-Driver" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="650.25,1254.1669,660.0987,1254.1097,654.8072,1252.1097,656.8072,1246.8182,650.25,1254.1669" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="117" x="934" y="1045.8638">ownerType=Driver</text></g><!--MD5=[82c8f317d19de3e63f0092826b051bfd]
+link Document to Vehicle--><g id="link_Document_Vehicle"><path codeLine="115" d="M814.18,875.5869 C800.09,899.7069 785.51,924.6769 772.1,947.6469 " fill="none" id="Document-to-Vehicle" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="769.43,952.2169,777.4318,946.4748,771.9582,947.9032,770.5299,942.4296,769.43,952.2169" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="125" x="797" y="918.3638">ownerType=Vehicle</text></g><!--MD5=[fda24acdb95e144c9d448a66e6f90ca3]
+@startuml
+skinparam backgroundColor #F5F5F5
+skinparam classAttributeIconSize 0
+title Vendor Management System - UML Class Diagram
+
+' ===== Interfaces =====
+interface IManageable {
+  +activate()
+  +deactivate()
+}
+
+interface IDocumentHandler {
+  +uploadDocument()
+  +approveDocument()
+  +rejectDocument()
+}
+
+' ===== Base Class =====
+class BaseEntity {
+  +ObjectId _id
+  +Date createdAt
+  +Date updatedAt
+}
+
+' ===== User & Vendor Hierarchy =====
+class User {
+  +String username
+  +String password
+  +String contactInfo
+  +String role
+}
+
+class Vendor {
+  +String name
+  +String region
+  +Boolean isActive
+  +Permissions permissions
+
+  +addSubVendor()
+  +approveSubVendor()
+  +updatePermissions()
+  +deactivateVendor()
+}
+
+class Driver {
+  +String name
+  +String licenseNumber
+  +String contactInfo
+  +Boolean isActive
+
+  +assignToVehicle()
+  +updateLicense()
+  +deactivateDriver()
+}
+
+' ===== Vehicle & Document =====
+class Vehicle {
+  +String registrationNumber
+  +String model
+  +Number capacity
+  +String fuelType
+  +Boolean isActive
+
+  +assignDriver()
+  +updateVehicleDetails()
+  +deactivateVehicle()
+}
+
+class Document {
+  +ObjectId vendorId
+  +ObjectId ownerId
+  +String ownerType
+  +String docType
+  +String filePath
+  +Enum status
+  +Date expiryDate
+  +Date uploadDate
+
+  +uploadDocument()
+  +approveDocument()
+  +rejectDocument()
+  +checkExpiry()
+}
+
+class Permissions {
+  +Boolean fleetOnboarding
+  +Boolean driverOnboarding
+  +Boolean complianceTracking
+  +Boolean bookingManagement
+  +Boolean payments
+
+  +updatePermission()
+}
+
+' ===== Inheritance Relationships =====
+BaseEntity <|- - User
+User <|- - Vendor
+Vendor <|- - Driver
+BaseEntity <|- - Vehicle
+BaseEntity <|- - Document
+BaseEntity <|- - Permissions
+
+' ===== Interface Realizations =====
+IManageable <|.. Vendor
+IManageable <|.. Vehicle
+IManageable <|.. Driver
+IDocumentHandler <|.. Document
+
+' ===== Associations =====
+Vendor "1" - -> "0..*" Vehicle : owns >
+Vendor "1" - -> "0..*" Driver : manages >
+Vendor "1" - -> "0..*" Document : uploads >
+Vehicle "1" - -> "0..*" Driver : assigns >
+Vendor "1" - -> "1" Permissions : hasPermissions >
+Document - -> Driver : ownerType=Driver
+Document - -> Vehicle : ownerType=Vehicle
+@enduml
+
+@startuml
+skinparam backgroundColor #F5F5F5
+skinparam classAttributeIconSize 0
+title Vendor Management System - UML Class Diagram
+
+interface IManageable {
+  +activate()
+  +deactivate()
+}
+
+interface IDocumentHandler {
+  +uploadDocument()
+  +approveDocument()
+  +rejectDocument()
+}
+
+class BaseEntity {
+  +ObjectId _id
+  +Date createdAt
+  +Date updatedAt
+}
+
+class User {
+  +String username
+  +String password
+  +String contactInfo
+  +String role
+}
+
+class Vendor {
+  +String name
+  +String region
+  +Boolean isActive
+  +Permissions permissions
+
+  +addSubVendor()
+  +approveSubVendor()
+  +updatePermissions()
+  +deactivateVendor()
+}
+
+class Driver {
+  +String name
+  +String licenseNumber
+  +String contactInfo
+  +Boolean isActive
+
+  +assignToVehicle()
+  +updateLicense()
+  +deactivateDriver()
+}
+
+class Vehicle {
+  +String registrationNumber
+  +String model
+  +Number capacity
+  +String fuelType
+  +Boolean isActive
+
+  +assignDriver()
+  +updateVehicleDetails()
+  +deactivateVehicle()
+}
+
+class Document {
+  +ObjectId vendorId
+  +ObjectId ownerId
+  +String ownerType
+  +String docType
+  +String filePath
+  +Enum status
+  +Date expiryDate
+  +Date uploadDate
+
+  +uploadDocument()
+  +approveDocument()
+  +rejectDocument()
+  +checkExpiry()
+}
+
+class Permissions {
+  +Boolean fleetOnboarding
+  +Boolean driverOnboarding
+  +Boolean complianceTracking
+  +Boolean bookingManagement
+  +Boolean payments
+
+  +updatePermission()
+}
+
+BaseEntity <|- - User
+User <|- - Vendor
+Vendor <|- - Driver
+BaseEntity <|- - Vehicle
+BaseEntity <|- - Document
+BaseEntity <|- - Permissions
+
+IManageable <|.. Vendor
+IManageable <|.. Vehicle
+IManageable <|.. Driver
+IDocumentHandler <|.. Document
+
+Vendor "1" - -> "0..*" Vehicle : owns >
+Vendor "1" - -> "0..*" Driver : manages >
+Vendor "1" - -> "0..*" Document : uploads >
+Vehicle "1" - -> "0..*" Driver : assigns >
+Vendor "1" - -> "1" Permissions : hasPermissions >
+Document - -> Driver : ownerType=Driver
+Document - -> Vehicle : ownerType=Vehicle
+@enduml
+
+PlantUML version 1.2022.7(Mon Aug 22 17:01:30 UTC 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>
