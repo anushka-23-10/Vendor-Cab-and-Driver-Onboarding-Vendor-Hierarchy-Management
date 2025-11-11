@@ -176,6 +176,13 @@ Document Schema
   uploadDate: Date
 }
 ```
+## Diagrams
+<!-- Class Diagram -->
+![Class Diagram](./assets/uml_diagrams/class_diagram.svg)
+
+<!-- Detailed ER Diagram -->
+![ER Diagram](./assets/uml_diagrams/er_diagram.svg)
+
 
 ## Important Definitions
 Term | Explanation |
