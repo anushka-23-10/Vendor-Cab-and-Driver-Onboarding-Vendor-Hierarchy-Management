@@ -71,7 +71,12 @@
       <h2>Vendor Login</h2>
 
       <input type="text" id="loginUsername" placeholder="Username" required />
-      <input type="password" id="loginPassword" placeholder="Password" required />
+      <input
+        type="password"
+        id="loginPassword"
+        placeholder="Password"
+        required
+      />
       <button onclick="login()">Login</button>
 
       <p id="loginMsg"></p>
@@ -82,7 +87,7 @@
     </div>
 
     <script>
-      const API_BASE = "http://localhost:5000/api/vendors";
+      const API = `${process.env.REACT_APP_API_URL}/vendors`;
 
       async function login() {
         const username = document.getElementById("loginUsername").value.trim();
@@ -114,7 +119,9 @@
             if (payload.role === "SuperVendor") {
               window.location.href = "super-dashboard.html";
             } else if (
-              ["RegionalVendor", "CityVendor", "LocalVendor"].includes(payload.role)
+              ["RegionalVendor", "CityVendor", "LocalVendor"].includes(
+                payload.role
+              )
             ) {
               window.location.href = "sub-dashboard.html";
             } else {

@@ -1,127 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Register SuperVendor | MoveInSync</title>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #eef3ff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    h2 {
-      color: #007bff;
-      margin-bottom: 10px;
-    }
-
-    form {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      width: 320px;
-    }
-
-    input {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px;
-      width: 100%;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    p {
-      text-align: center;
-      font-size: 13px;
-      color: #666;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-
-<body>
-  <h2>SuperVendor Registration</h2>
-
-  <form id="registerForm">
-    <input type="text" id="regName" placeholder="Full Name / Company Name" required />
-    <input type="text" id="regUsername" placeholder="Username" required />
-    <input type="password" id="regPassword" placeholder="Password" required />
-    <input type="email" id="regContact" placeholder="Contact Email" required />
-    <input type="text" id="regRegion" placeholder="Region (optional)" />
-    <button type="submit">Register</button>
-  </form>
-
-  <p>Already registered? <a href="vendor-login.html">Login here</a></p>
-
-  <script>
-    const API_BASE = "http://localhost:5000/api/vendors";
-
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const name = document.getElementById("regName").value.trim();
-      const username = document.getElementById("regUsername").value.trim();
-      const password = document.getElementById("regPassword").value.trim();
-      const contactInfo = document.getElementById("regContact").value.trim();
-      const region = document.getElementById("regRegion").value.trim();
-
-      if (!username || !password || !name || !contactInfo) {
-        alert("Please fill in all required fields.");
-        return;
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register SuperVendor | MoveInSync</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #eef3ff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
       }
 
-      try {
-        const res = await fetch(`${API_BASE}/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            username,
-            password,
-            contactInfo,
-            region
-          }),
+      h2 {
+        color: #007bff;
+        margin-bottom: 10px;
+      }
+
+      form {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 320px;
+      }
+
+      input {
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        width: 100%;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      p {
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>SuperVendor Registration</h2>
+
+    <form id="registerForm">
+      <input
+        type="text"
+        id="regName"
+        placeholder="Full Name / Company Name"
+        required
+      />
+      <input type="text" id="regUsername" placeholder="Username" required />
+      <input type="password" id="regPassword" placeholder="Password" required />
+      <input
+        type="email"
+        id="regContact"
+        placeholder="Contact Email"
+        required
+      />
+      <input type="text" id="regRegion" placeholder="Region (optional)" />
+      <button type="submit">Register</button>
+    </form>
+
+    <p>Already registered? <a href="vendor-login.html">Login here</a></p>
+
+    <script>
+      const API = `${process.env.REACT_APP_API_URL}/vendors`;
+
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const name = document.getElementById("regName").value.trim();
+          const username = document.getElementById("regUsername").value.trim();
+          const password = document.getElementById("regPassword").value.trim();
+          const contactInfo = document
+            .getElementById("regContact")
+            .value.trim();
+          const region = document.getElementById("regRegion").value.trim();
+
+          if (!username || !password || !name || !contactInfo) {
+            alert("Please fill in all required fields.");
+            return;
+          }
+
+          try {
+            const res = await fetch(`${API_BASE}/register`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name,
+                username,
+                password,
+                contactInfo,
+                region,
+              }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+              alert("✅ SuperVendor registered successfully!");
+              // Store the token for immediate session (optional)
+              localStorage.setItem("token", data.token);
+              localStorage.setItem("role", "SuperVendor");
+              // Redirect to login
+              window.location.href = "vendor-login.html";
+            } else {
+              alert(data.error || "Registration failed. Try again.");
+            }
+          } catch (err) {
+            console.error("❌ Register error:", err);
+            alert("Server error. Please try again later.");
+          }
         });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          alert("✅ SuperVendor registered successfully!");
-          // Store the token for immediate session (optional)
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("role", "SuperVendor");
-          // Redirect to login
-          window.location.href = "vendor-login.html";
-        } else {
-          alert(data.error || "Registration failed. Try again.");
-        }
-      } catch (err) {
-        console.error("❌ Register error:", err);
-        alert("Server error. Please try again later.");
-      }
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

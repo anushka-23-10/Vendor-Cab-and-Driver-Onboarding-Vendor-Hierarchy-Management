@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api";
+const API = `${process.env.REACT_APP_API_URL}/api`;
 
 // --- LOGIN ---
 async function login() {
@@ -35,7 +35,6 @@ async function login() {
     alert(data.error || "Login failed");
   }
 }
-
 
 // --- REGISTER (for SuperVendor only) ---
 async function register() {
