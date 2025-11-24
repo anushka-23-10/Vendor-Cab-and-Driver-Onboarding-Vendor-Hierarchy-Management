@@ -45,3 +45,5 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Check for expired documents every hour
 setInterval(checkExpiredDocuments, 3600 * 1000);
+const cors = require("cors");
+app.use(cors());
